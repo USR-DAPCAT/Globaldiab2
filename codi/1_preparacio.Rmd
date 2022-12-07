@@ -1,5 +1,5 @@
 ---
-title: 'Analisis transversal descriptivo . Fecha de corte:  `r params$bd.dindex1`'
+title: 'Estudi GLBALDIAB . Fecha de corte:  `r params$bd.dindex1`'
 author: "Jordi Real & Rai Puig"
 website: "https://github.com/USR-DAPCAT/"
 

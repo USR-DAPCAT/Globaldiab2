@@ -1,5 +1,5 @@
 ---
-title: 'Analisis transversal descriptivo . Fecha de corte:  `r params$bd.dindex1`'
+title: 'Estudi GLBALDIAB . Fecha de corte:  `r params$bd.dindex1`'
 author: "Jordi Real & Rai Puig"
 website: "https://github.com/USR-DAPCAT/"
 
@@ -17,7 +17,7 @@ output:
   word_document: default
 
 params:
-  dir_dades_origen: "dades" 
+  dir_dades_origen: "../../DADES/GLOBALDIAL2/mostra" 
   dir_dades_desti: "dades" 
   bd.dindex1: '20221111'
   bd.dindex2: '20221111'
@@ -55,7 +55,7 @@ params:
 
 #conductor_codis<-here::here("CATALEG.xlsx")
 
-#directori_dades_origen<-params$dir_dades_origen
+directori_dades_origen<-params$dir_dades_origen
 
 #dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod,domini,agr,agr_Farmac,DM2)
 #
@@ -82,17 +82,17 @@ library("Platan")
 # estructura de carpetes: /dades /codi /outputs /docs
 #
 # Genero el directori si no existeic
-directori<-paste0("dades")
-if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
+#directori<-paste0("dades")
+#if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #  
-directori<-paste0("codi")
-if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
+#directori<-paste0("codi")
+#if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
-directori<-paste0("outputs")
-if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
+#directori<-paste0("outputs")
+#if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
-directori<-paste0("docs")
-if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
+#directori<-paste0("docs")
+#if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
 #######################################################################################
 
@@ -103,6 +103,13 @@ if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FA
 # 1 Lectura -----------
 
 #i)
+
+#[uni]
+dt_poblacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_20221118.rds")) %>% as_tibble()
+#variable.names(dt_poblacio)
+#[1] "idp"      "sexe"     "situacio" "dnaix"    "entrada"  "sortida"  "agr_pais"
+dt_temp<-dt_poblacio
+
 dt_poblacio<-dt_poblacio%>%
   as_tibble()
 
