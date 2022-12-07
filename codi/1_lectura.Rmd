@@ -1,5 +1,5 @@
 ---
-title: 'Estudi GLBALDIAB . Fecha de corte:  `r params$bd.dindex1`'
+title: 'Estudi GLBALDIAB 2007-2018. Fecha de corte:  `r params$bd.dindex1`'
 author: "Jordi Real & Rai Puig"
 website: "https://github.com/USR-DAPCAT/"
 
@@ -19,8 +19,8 @@ output:
 params:
   dir_dades_origen: "../../DADES/GLOBALDIAL2/mostra" 
   dir_dades_desti: "dades" 
-  bd.dindex1: '20221111'
-  bd.dindex2: '20221111'
+  bd.dindex1: '20200101'
+  bd.dindex2: '20200101'
 ---
 
 
@@ -67,12 +67,14 @@ directori_dades_origen<-params$dir_dades_origen
 #
 library("devtools")
 library("dplyr")
+library("Platan")
+
+
 #devtools::install_github("USR-DAPCAT/Platan")
 #devtools::install_github("USR-DAPCAT/FormatGe")
 #devtools::install_github("USR-DAPCAT/Macedonia")
 #devtools::install_github("USR-DAPCAT/ggflowchart2")
-#
-library("Platan")
+#library("Platan")
 #library("FormatGe")
 #library("Macedonia")
 #library("ggflowchart2")
@@ -85,13 +87,13 @@ library("Platan")
 #directori<-paste0("dades")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #  
-#directori<-paste0("codi")
+directori<-paste0("codi")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
-#directori<-paste0("outputs")
+directori<-paste0("outputs")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
-#directori<-paste0("docs")
+directori<-paste0("docs")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
 #######################################################################################
@@ -108,14 +110,9 @@ library("Platan")
 dt_poblacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_20221118.rds")) %>% as_tibble()
 #variable.names(dt_poblacio)
 #[1] "idp"      "sexe"     "situacio" "dnaix"    "entrada"  "sortida"  "agr_pais"
-dt_temp<-dt_poblacio
+dt_poblacio_ESP<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_esp_20221118.rds")) %>% as_tibble()
 
-dt_poblacio<-dt_poblacio%>%
-  as_tibble()
 
-#ii)
-dt_variables<-dt_variables%>%
-  as_tibble()
 
 ```
 ##2. Generar DataIndex Disseny Transversal
@@ -123,17 +120,16 @@ dt_variables<-dt_variables%>%
 
 # 2 Data.Index -----------
 
-dt_poblacio<-dt_poblacio%>%mutate(sortida=as.integer(20221111))
+#[29.4.2021]#:
 
-
+#[29.4.2021]#: (2016-2018)
 dt_index<-
-  dt_poblacio %>% select(idp,entrada,sortida) %>% mutate(kk=1)%>%
-  left_join(tibble(dtindex=seq(params$bd.dindex1,params$bd.dindex2,by=10000),kk=1),by="kk")%>%
+  dt_poblacio %>% select(idp,entrada,sortida) %>% mutate(kk=1) %>%
+  left_join(tibble(dtindex=seq(params$bd.dindex1,params$bd.dindex2,by=10000),kk=1),by="kk") %>%
   filter(entrada<=dtindex & dtindex<=sortida)  %>%  # Filtro per usuari actiu en data index
   select(-c(kk,entrada,sortida))
 
-dt_index$dtindex<-as.character(dt_index$dtindex)
-
+gc()
 
 
 ```
@@ -144,23 +140,49 @@ dt_index$dtindex<-as.character(dt_index$dtindex)
 
 # 3 Lectura posterior a DataIndex -----------
 
-#[pluri]
-#dt_cmbdh_diagnostics<-readRDS(here::here(directori_dades_origen,"HTCPANCR_entregable_cmbdh_diagnostics_20210701_235119.rds")) %>% #as_tibble()  %>% 
-#  semi_join(dt_index,by="idp")
+#17.02.2021#
+#dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>%select(cod,DM2,agr0,agr,agr1,agr_Farmac,agr11,agr1_amp,agr_Niad,agr_Insul_Ado,agr_Comp_Vasc,agr_CVD,agr_Comp_Vasc2)
 
+
+
+
+#ii)
+dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_tabaquisme_20221118.rds"))%>% 
+  as_tibble()%>% 
+    semi_join(dt_index,by="idp")
 
 #iii)
-dt_diagnostics<-dt_diagnostics%>%
+dt_analitiques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_analitiques_20221118.rds"))%>%
   as_tibble()
+
+dt_cliniques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_cliniques_20221118.rds"))%>%
+  as_tibble()
+# Fusiono cliniques + variables
+
+dt_variables<-dt_analitiques%>%
+   bind_rows(dt_cliniques)%>%
+    select(-agr)%>%
+     left_join(select(dt_cataleg,cod,agr),by="cod")%>% 
+       select(-cod)%>%
+        rename(cod=agr)%>%
+          semi_join(dt_index,by="idp")
+
+
 
 #iv)
-dt_facturacio<-dt_facturacio%>%
-  as_tibble()
+dt_diagnostics<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_diagnostics_20221118.rds"))%>%
+  as_tibble()%>%
+   semi_join(dt_index,by="idp")
 
 #v)
-dt_prescripcions<-dt_prescripcions%>%
-  as_tibble()
+dt_facturacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_facturats_20221118.rds"))%>%
+  as_tibble()%>%
+   semi_join(dt_index,by="idp")
 
+#vi)
+dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_prescrits_20221118.rds"))%>%
+   as_tibble()%>%
+    semi_join(dt_index,by="idp")
 
 ```
 
@@ -269,7 +291,7 @@ prefix =c("DG.","FF.","FP.",".valor")
 dt_parametres<-data.frame(cbind(fitxer,domini,Finestra1,Finestra2,camp,prefix,funcio))
 dt_parametres
 
-
+dt_index$dtindex<-as.character(dt_index$dtindex)
 
 
 KK<-Generar_taula_plana(
@@ -277,276 +299,10 @@ dt=dt_index,
 cataleg=cataleg,
 parametres=dt_parametres)
 
-dt_plana2<-dt_poblacio%>%
+dt_plana2<-dt_index%>%
   left_join(KK,by="idp")
 
-# S ha de mirar :!!!
-dt_plana2$DG.ALCOHOL
-dt_plana2$DG.ARTPER
-dt_plana2$DG.DM_GEST
-dt_plana2$DG.DM_IND
-dt_plana2$DG.FIBR_QUIST
-dt_plana2$DG.HEMOCROMAT
-dt_plana2$DG.HQM
-dt_plana2$DG.PANC_AG_AL
-dt_plana2$DG.PANC_AG_BI
-dt_plana2$DG.PANC_AG_FA
-dt_plana2$DG.PANC_AG_ID
-dt_plana2$DG.PANC_CR_AL
-dt_plana2$DG.PANC_CRON
-dt_plana2$DG.PANC_OTROS
-dt_plana2$DG.PANC_RECID
-dt_plana2$DG.VIH
-dt_plana2$FF.ACIDRETINO
-dt_plana2$FF.ALFAGLUC
-dt_plana2$FF.CICLOSPOR
-dt_plana2$FF.EZE
-dt_plana2$FF.INH_SODGLU
-dt_plana2$FF.NICOTINIC
-dt_plana2$FF.OTR_HIPOLIP
-dt_plana2$FF.TAMOXIFENO
-dt_plana2$FF.TIAGLI
-dt_plana2$FP.ACIDRETINO
-dt_plana2$FP.ALFAGLUC
-dt_plana2$FP.CICLOSPOR
-dt_plana2$FP.EZE
-dt_plana2$FP.INH_SODGLU
-dt_plana2$FP.NICOTINIC
-dt_plana2$FP.OTR_HIPOLIP
-dt_plana2$FP.TAMOXIFENO
-dt_plana2$FP.TIAGLI
 
-
-
-
-#tot correcte
-
-
-table(dt_plana1$idp)
-table(dt_plana1$dtindex)
-table(dt_plana1$sexe)
-table(dt_plana1$situacio)
-table(dt_plana1$dnaix)
-table(dt_plana1$entrada)
-table(dt_plana1$sortida)
-table(dt_plana1$DG.AVC)
-table(dt_plana1$DG.CANCER)
-table(	dt_plana1$	DG.CI	)
-table(	dt_plana1$	DG.COLE_DIAG	)
-table(	dt_plana1$	DG.COMP_MV	)
-table(	dt_plana1$	DG.COMP_OTRAS	)
-table(	dt_plana1$	DG.DISLIPEMIA_otras	)
-table(	dt_plana1$	DG.DM_ALTRES	)
-table(	dt_plana1$	DG.DM1	)
-table(	dt_plana1$	DG.DM2	)
-table(	dt_plana1$	DG.EMBARAZO	)
-table(	dt_plana1$	DG.ENF_MENTAL	)
-table(	dt_plana1$	DG.ENF_MENTAL_G	)
-table(	dt_plana1$	DG.ESTE_HEPAT	)
-table(	dt_plana1$	DG.Exclusion	)
-table(	dt_plana1$	DG.HT	)
-table(	dt_plana1$	DG.HTC	)
-table(	dt_plana1$	DG.IC	)
-table(	dt_plana1$	DG.LITIA_BIL	)
-table(	dt_plana1$	DG.TRAST_SIST	)
-table(	dt_plana1$	FF.ADO	)
-table(	dt_plana1$	FF.AGOPEPGLU	)
-table(	dt_plana1$	FF.AINE	)
-table(	dt_plana1$	FF.ANTIAG	)
-table(	dt_plana1$	FF.ANTICOAG	)
-table(	dt_plana1$	FF.ANTIHTA	)
-table(	dt_plana1$	FF.ANTIPSICO	)
-table(	dt_plana1$	FF.BIGUANIDAS	)
-table(	dt_plana1$	FF.Bil_acid	)
-table(	dt_plana1$	FF.CORTIS_SIST	)
-table(	dt_plana1$	FF.ESTROGEN	)
-table(	dt_plana1$	FF.Farmac_ca_sec	)
-table(	dt_plana1$	FF.FIBRAT	)
-table(	dt_plana1$	FF.GLINIDAS	)
-table(	dt_plana1$	FF.HIPOGLU	)
-table(	dt_plana1$	FF.HIPOLIP	)
-table(	dt_plana1$	FF.INH_DIPEPT	)
-table(	dt_plana1$	FF.INSULINAS	)
-table(	dt_plana1$	FF.NIAD	)
-table(	dt_plana1$	FF.STATINS	)
-table(	dt_plana1$	FF.SULFONILUR	)
-table(	dt_plana1$	FP.ADO	)
-table(	dt_plana1$	FP.AGOPEPGLU	)
-table(	dt_plana1$	FP.AINE	)
-table(	dt_plana1$	FP.ANTIAG	)
-table(	dt_plana1$	FP.ANTICOAG	)
-table(	dt_plana1$	FP.ANTIHTA	)
-table(	dt_plana1$	FP.ANTIPSICO	)
-table(	dt_plana1$	FP.BIGUANIDAS	)
-table(	dt_plana1$	FP.Bil_acid	)
-table(	dt_plana1$	FP.CORTIS_SIST	)
-table(	dt_plana1$	FP.ESTROGEN	)
-table(	dt_plana1$	FP.Farmac_ca_sec	)
-table(	dt_plana1$	FP.FIBRAT	)
-table(	dt_plana1$	FP.GLINIDAS	)
-table(	dt_plana1$	FP.HIPOGLU	)
-table(	dt_plana1$	FP.HIPOLIP	)
-table(	dt_plana1$	FP.INH_DIPEPT	)
-table(	dt_plana1$	FP.INSULINAS	)
-table(	dt_plana1$	FP.NIAD	)
-table(	dt_plana1$	FP.STATINS	)
-table(	dt_plana1$	FP.SULFONILUR	)
-table(	dt_plana1$	ALSET.valor	)
-table(	dt_plana1$	AMILASA.valor	)
-table(	dt_plana1$	BAS_P.valor	)
-table(	dt_plana1$	BBTOT.valor	)
-table(	dt_plana1$	CAC.valor	)
-table(	dt_plana1$	CKDEPI.valor	)
-table(	dt_plana1$	COLHDL.valor	)
-table(	dt_plana1$	COLLDL.valor	)
-table(	dt_plana1$	COLTOT.valor	)
-table(	dt_plana1$	CPC.valor	)
-table(	dt_plana1$	CREAT.valor	)
-table(	dt_plana1$	EK201.valor	)
-table(	dt_plana1$	EK202.valor	)
-table(	dt_plana1$	EOS_P.valor	)
-table(	dt_plana1$	FA.valor	)
-table(	dt_plana1$	FERRITINA.valor	)
-table(	dt_plana1$	FOLATS.valor	)
-table(	dt_plana1$	GGT.valor	)
-table(	dt_plana1$	GOT.valor	)
-table(	dt_plana1$	GPT.valor	)
-table(	dt_plana1$	HBA1C.valor	)
-table(	dt_plana1$	HCM.valor	)
-table(	dt_plana1$	HEMAT.valor	)
-table(	dt_plana1$	HEMOG.valor	)
-table(	dt_plana1$	INR.valor	)
-table(	dt_plana1$	K.valor	)
-table(	dt_plana1$	LEUC_N.valor	)
-table(	dt_plana1$	LINF_P.valor	)
-table(	dt_plana1$	MDRD.valor	)
-table(	dt_plana1$	NEUT_N.valor	)
-table(	dt_plana1$	NEUT_P.valor	)
-table(	dt_plana1$	PCR.valor	)
-table(	dt_plana1$	PLAQ.valor	)
-table(	dt_plana1$	PROT.valor	)
-table(	dt_plana1$	PROTEINAs.valor	)
-table(	dt_plana1$	Q70758.valor	)
-table(	dt_plana1$	TG.valor	)
-table(	dt_plana1$	TP.valor	)
-table(	dt_plana1$	TRAFERRINA.valor	)
-table(	dt_plana1$	TSH.valor	)
-table(	dt_plana1$	TT101.valor	)
-table(	dt_plana1$	TT102.valor	)
-table(	dt_plana1$	TT103.valor	)
-table(	dt_plana1$	TU0013.valor	)
-table(	dt_plana1$	URAT.valor	)
-table(	dt_plana1$	VCM.valor	)
-table(	dt_plana1$	VITB12.valor	)
-
-
-table(dt_plana2$idp)
-table(dt_plana2$dtindex)
-table(dt_plana2$sexe)
-table(dt_plana2$situacio)
-table(dt_plana2$dnaix)
-table(dt_plana2$entrada)
-table(dt_plana2$sortida)
-table(dt_plana2$DG.AVC)
-table(dt_plana2$DG.CANCER)
-table(	dt_plana2$	DG.CI	)
-table(	dt_plana2$	DG.COLE_DIAG	)
-table(	dt_plana2$	DG.COMP_MV	)
-table(	dt_plana2$	DG.COMP_OTRAS	)
-table(	dt_plana2$	DG.DISLIPEMIA_otras	)
-table(	dt_plana2$	DG.DM_ALTRES	)
-table(	dt_plana2$	DG.DM1	)
-table(	dt_plana2$	DG.DM2	)
-table(	dt_plana2$	DG.EMBARAZO	)
-table(	dt_plana2$	DG.ENF_MENTAL	)
-table(	dt_plana2$	DG.ENF_MENTAL_G	)
-table(	dt_plana2$	DG.ESTE_HEPAT	)
-table(	dt_plana2$	DG.Exclusion	)
-table(	dt_plana2$	DG.HT	)
-table(	dt_plana2$	DG.HTC	)
-table(	dt_plana2$	DG.IC	)
-table(	dt_plana2$	DG.LITIA_BIL	)
-table(	dt_plana2$	DG.TRAST_SIST	)
-table(	dt_plana2$	FF.ADO	)
-table(	dt_plana2$	FF.AGOPEPGLU	)
-table(	dt_plana2$	FF.AINE	)
-table(	dt_plana2$	FF.ANTIAG	)
-table(	dt_plana2$	FF.ANTICOAG	)
-table(	dt_plana2$	FF.ANTIHTA	)
-table(	dt_plana2$	FF.ANTIPSICO	)
-table(	dt_plana2$	FF.BIGUANIDAS	)
-table(	dt_plana2$	FF.Bil_acid	)
-table(	dt_plana2$	FF.CORTIS_SIST	)
-table(	dt_plana2$	FF.ESTROGEN	)
-table(	dt_plana2$	FF.Farmac_ca_sec	)
-table(	dt_plana2$	FF.FIBRAT	)
-table(	dt_plana2$	FF.GLINIDAS	)
-table(	dt_plana2$	FF.HIPOGLU	)
-table(	dt_plana2$	FF.HIPOLIP	)
-table(	dt_plana2$	FF.INH_DIPEPT	)
-table(	dt_plana2$	FF.INSULINAS	)
-table(	dt_plana2$	FF.NIAD	)
-table(	dt_plana2$	FF.STATINS	)
-table(	dt_plana2$	FF.SULFONILUR	)
-table(	dt_plana2$	FP.ADO	)
-table(	dt_plana2$	FP.AGOPEPGLU	)
-table(	dt_plana2$	FP.AINE	)
-table(	dt_plana2$	FP.ANTIAG	)
-table(	dt_plana2$	FP.ANTICOAG	)
-table(	dt_plana2$	FP.ANTIHTA	)
-table(	dt_plana2$	FP.ANTIPSICO	)
-table(	dt_plana2$	FP.BIGUANIDAS	)
-table(	dt_plana2$	FP.Bil_acid	)
-table(	dt_plana2$	FP.CORTIS_SIST	)
-table(	dt_plana2$	FP.ESTROGEN	)
-table(	dt_plana2$	FP.Farmac_ca_sec	)
-table(	dt_plana2$	FP.FIBRAT	)
-table(	dt_plana2$	FP.GLINIDAS	)
-table(	dt_plana2$	FP.HIPOGLU	)
-table(	dt_plana2$	FP.HIPOLIP	)
-table(	dt_plana2$	FP.INH_DIPEPT	)
-table(	dt_plana2$	FP.INSULINAS	)
-table(	dt_plana2$	FP.NIAD	)
-table(	dt_plana2$	FP.STATINS	)
-table(	dt_plana2$	FP.SULFONILUR	)
-
-
-table(	dt_plana2$	AMILASA.valor	)
-table(	dt_plana2$	BAS_P.valor	)
-table(	dt_plana2$	BBTOT.valor	)
-table(	dt_plana2$	CAC.valor	)
-table(	dt_plana2$	CKDEPI.valor	)
-table(	dt_plana2$	COLHDL.valor	)
-table(	dt_plana2$	COLLDL.valor	)
-table(	dt_plana2$	COLTOT.valor	)
-table(	dt_plana2$	CPC.valor	)
-table(	dt_plana2$	CREAT.valor	)
-table(	dt_plana2$	EK201.valor	)
-table(	dt_plana2$	EK202.valor	)
-table(	dt_plana2$	EOS_P.valor	)
-table(	dt_plana2$	FA.valor	)
-table(	dt_plana2$	FERRITINA.valor	)
-table(	dt_plana2$	FOLATS.valor	)
-table(	dt_plana2$	GGT.valor	)
-table(	dt_plana2$	GOT.valor	)
-table(	dt_plana2$	GPT.valor	)
-table(	dt_plana2$	HBA1C.valor	)
-table(	dt_plana2$	HCM.valor	)
-table(	dt_plana2$	HEMAT.valor	)
-table(	dt_plana2$	HEMOG.valor	)
-table(	dt_plana2$	INR.valor	)
-table(	dt_plana2$	K.valor	)
-table(	dt_plana2$	LEUC_N.valor	)
-table(	dt_plana2$	LINF_P.valor	)
-table(	dt_plana2$	MDRD.valor	)
-table(	dt_plana2$	NEUT_N.valor	)
-table(	dt_plana2$	NEUT_P.valor	)
-table(	dt_plana2$	PCR.valor	)
-table(	dt_plana2$	PLAQ.valor	)
-table(	dt_plana2$	PROT.valor	)
-table(	dt_plana2$	PROTEINAs.valor	)
-table(	dt_plana2$	Q70758.valor	)
-table(	dt_plana2$	TG.valor	)
 
 
 
@@ -554,6 +310,6 @@ table(	dt_plana2$	TG.valor	)
 
 ## 5. Salvar part1 
 ```{r SALVAR}
-#saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana1.rds"))
+saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana2.rds"))
 
 ```
