@@ -19,8 +19,8 @@ output:
 params:
   dir_dades_origen: "../../DADES/GLOBALDIAL2/mostra" 
   dir_dades_desti: "dades" 
-  bd.dindex1: '20200101'
-  bd.dindex2: '20200101'
+  bd.dindex1: '20201231'
+  bd.dindex2: '20201231'
 ---
 
 
@@ -321,8 +321,6 @@ parametres=dt_parametres)
 
 dt_plana2<-KK%>%
   left_join(dt_poblacio,by="idp")
-
-
 
 
 
