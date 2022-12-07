@@ -53,11 +53,13 @@ params:
 #link_source<-paste0("https://github.com/jrealgatius/Stat_codis/blob/master/funcions_propies.R","?raw=T")
 #devtools::source_url(link_source)
 
-#conductor_codis<-here::here("CATALEG.xlsx")
+conductor_codis<-here::here("CATALEG.xlsx")
 
 directori_dades_origen<-params$dir_dades_origen
 
-#dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod,domini,agr,agr_Farmac,DM2)
+dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod,domini,agr)
+
+
 #
 #
 #[S'ha d'instal.lar les llibreries:
@@ -194,10 +196,11 @@ dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entrega
 # 4 Agregacio dels nostres fitxers a partir del cataleg -----------
 
 
+
 #Agregacio Problemes de Salut.
 dtagr_diagnostics<-agregar_problemes(dplyr::select(dt_diagnostics,idp,cod,dat),
                                      bd.dindex = dt_index,
-                                     dt.agregadors=cataleg,
+                                     dt.agregadors=dt_cataleg,
                                      finestra.dies=c(-Inf,0),prefix = "DG.",
                                      cataleg_mana=FALSE)
 
@@ -208,7 +211,7 @@ dtagr_diagnostics<-agregar_problemes(dplyr::select(dt_diagnostics,idp,cod,dat),
 dtagr_facturacio<-agregar_facturacio(dt=dt_facturacio,
                                      bd.dindex=20220101,
                                      finestra.dies=c(-Inf,0),
-                                     dt.agregadors=cataleg,
+                                     dt.agregadors=dt_cataleg,
                                      prefix="FF.",
                                      camp_agregador="agr",
                                      agregar_data=FALSE,
@@ -219,7 +222,7 @@ dtagr_facturacio<-agregar_facturacio(dt=dt_facturacio,
 dtagr_prescripcions<-agregar_prescripcions(dt=dt_prescripcions,
                                            bd.dindex=20220101,
                                            finestra.dies=c(-Inf,0),
-                                           dt.agregadors=cataleg,
+                                           dt.agregadors=dt_cataleg,
                                            prefix="FP.",
                                            camp_agregador="agr",
                                            agregar_data=FALSE,
@@ -296,7 +299,7 @@ dt_index$dtindex<-as.character(dt_index$dtindex)
 
 KK<-Generar_taula_plana(
 dt=dt_index,
-cataleg=cataleg,
+cataleg=dt_cataleg,
 parametres=dt_parametres)
 
 dt_plana2<-dt_index%>%
@@ -310,6 +313,6 @@ dt_plana2<-dt_index%>%
 
 ## 5. Salvar part1 
 ```{r SALVAR}
-saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana2.rds"))
+saveRDS(dt_plana2, file=here::here(params$dir_dades_desti,"dt_plana.rds"))
 
 ```
