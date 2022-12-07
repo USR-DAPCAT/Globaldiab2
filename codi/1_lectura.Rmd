@@ -47,7 +47,7 @@ params:
 
 ```{r setup, include = FALSE}
 #rm(list=ls())
-#library(dplyr)
+library(dplyr)
 
 # Funcions (provisional, quan tinguem la llibreria , ja no caldra!!!) 
 #link_source<-paste0("https://github.com/jrealgatius/Stat_codis/blob/master/funcions_propies.R","?raw=T")
@@ -89,13 +89,13 @@ library("Platan")
 #directori<-paste0("dades")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #  
-directori<-paste0("codi")
+#directori<-paste0("codi")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
-directori<-paste0("outputs")
+#directori<-paste0("outputs")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
-directori<-paste0("docs")
+#directori<-paste0("docs")
 #if (!file.exists(directori)) {dir.create(file.path(directori), showWarnings = FALSE)}
 #
 #######################################################################################
@@ -189,6 +189,9 @@ dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entrega
 ```
 
 
+
+
+
 ## 4. Agregacio dels nostres fitxers a partir del cataleg
 
 ```{r agregacio, include=T}
@@ -241,6 +244,20 @@ dtagr_prescripcions<-dtagr_prescripcions%>%select(-dtindex)
 dtagr_facturacio<-dtagr_facturacio%>%select(-dtindex)
 dtagr_variables<-dtagr_variables%>%select(-dtindex)
 
+#
+#
+#
+# hem d'estudiar com busquem els DM2!:
+#
+#
+#agregar_problemes(dplyr::select(dt_plana_covid2B,idp,cod,dat),
+#                                    bd.dindex = "20000601",
+#                                    dt.agregadors=dplyr::select(dt_cataleg2,cod,agr=agr5),
+#                                    finestra.dies=c(-Inf,0),prefix = "DM_F.") 
+#
+#filter(cod=="HBA1C_" & valor >=6.5 )
+#
+##############################################################################################
 
 
 
@@ -302,8 +319,8 @@ dt=dt_index,
 cataleg=dt_cataleg,
 parametres=dt_parametres)
 
-dt_plana2<-dt_index%>%
-  left_join(KK,by="idp")
+dt_plana2<-KK%>%
+  left_join(dt_poblacio,by="idp")
 
 
 
