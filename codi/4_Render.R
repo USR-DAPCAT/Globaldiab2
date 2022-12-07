@@ -22,9 +22,9 @@ library("Macedonia")
 library("ggflowchart2")
 
 dir_dades_desti="dades" 
-dir_dades_origen="../DADES/EPIPEU_CAT3/dades" 
+dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
-  dir_dades_origen="../../DADES/GLOBALDIAL2/mostra"
+  dir_dades_origen="../../DADES/GLOBALDIAB2/mostra"
   dir_dades_desti="dades/mostra" }
 #--------------------------------------------------------------------------------------------------# 
 # global:
@@ -50,9 +50,9 @@ library("Macedonia")
 library("ggflowchart2")
 data_inici='20231231'
 dir_dades_desti="dades" 
-dir_dades_origen="../DADES/EPIPEU_CAT3/dades" 
+dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
-  dir_dades_origen="../../DADES/GLOBALDIAL2/mostra"
+  dir_dades_origen="../../DADES/GLOBALDIAB2/mostra"
   dir_dades_desti="dades/mostra" }
 #---------------------------- PREPARACIO -------------------------------------------------------------# 
 rmarkdown::render(input="./codi/2_preparacio.Rmd",
@@ -76,9 +76,9 @@ library("Macedonia")
 library("ggflowchart2")
 
 dir_dades_desti="dades" 
-dir_dades_origen="../DADES/EPIPEU_CAT3/dades" 
+dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
-  dir_dades_origen="../DADES/GLOBALDIAL2/mostra"
+  dir_dades_origen="../DADES/GLOBALDIAB2/mostra"
   dir_dades_desti="dades/mostra" }
 #--------------------------------------------------------------------------------------------------# 
 # global:
@@ -104,9 +104,9 @@ library("Macedonia")
 library("ggflowchart2")
 
 dir_dades_desti="dades" 
-dir_dades_origen="../DADES/EPIPEU_CAT3/dades" 
+dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
-  dir_dades_origen="../DADES/GLOBALDIAL2/mostra"
+  dir_dades_origen="../DADES/GLOBALDIAB2/mostra"
   dir_dades_desti="dades/mostra" }
 #---------------------------- PREPARACIO -------------------------------------------------------------# 
 rmarkdown::render(input="./codi/2_preparacio.Rmd",
