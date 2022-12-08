@@ -17,7 +17,7 @@ output:
   word_document: default
 
 params:
-  dir_dades_origen: "../../DADES/GLOBALDIAL2/mostra" 
+  dir_dades_origen: "../../DADES/GLOBALDIAB2/mostra" # "../../DADES/GLOBALDIAL2/mostra"
   dir_dades_desti: "dades" 
   bd.dindex1: '20201231'
   bd.dindex2: '20201231'
