@@ -164,7 +164,6 @@ gc()
 
 ```
 ## 2. Generacio DataIndex DM2-Debut
-
 ```{r generacio_dtindex2, include=F}
 
 
@@ -226,15 +225,13 @@ dt_index<-
 
 #prova:
 
-dt_index<-
-  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) 
+#dt_index<-
+#  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) 
 
 
 
 ```
-
 ## 3. Lectura posterior a DataIndex 
-
 ```{r lectura2, include=T}
 
 # 3 Lectura posterior a DataIndex -----------
@@ -258,13 +255,7 @@ dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable
 
 
 ```
-
-
-
-
-
 ## 4. Agregacio dels nostres fitxers a partir del cataleg
-
 ```{r agregacio, include=T}
 
 # 4 Agregacio dels nostres fitxers a partir del cataleg -----------
@@ -287,7 +278,7 @@ dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable
 dtagr_diagnostics<-agregar_problemes(dplyr::select(dt_diagnostics,idp,cod,dat),
                                      bd.dindex = dt_index,
                                      dt.agregadors=dt_cataleg,
-                                     finestra.dies=c(-Inf,-1),prefix = "DG.",
+                                     finestra.dies=c(-Inf,0),prefix = "DG.",
                                      cataleg_mana=FALSE)
 
 
@@ -394,6 +385,7 @@ prefix =c("DG.","FF.","FP.",".valor")
 dt_parametres<-data.frame(cbind(fitxer,domini,Finestra1,Finestra2,camp,prefix,funcio))
 dt_parametres
 
+#ull es important!!
 dt_index$dtindex<-as.character(dt_index$dtindex)
 
 
