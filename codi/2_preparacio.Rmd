@@ -222,7 +222,7 @@ dt_plana<-dt_plana %>% mutate(age2.cat=case_when(age<30~ "age<30",
                                                  age >=75~ "age >=75" ))
 
 
-
+dt_plana<-dt_plana%>%mutate(age_youngDM2=case_when(age<40 ~ "Yes",age>=40 ~ "No"))
 
 #3)Temps_evolucio->TEMPS EVOLUCIO DM2
 #dt_plana<-dt_plana%>%mutate(temps_evolucio=(ymd(dtindex)-ymd(DG.DM2)),temps_evolucio=round(temps_evolucio/365.25,2)%>% as.numeric()) 

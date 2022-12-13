@@ -115,23 +115,120 @@ dt_poblacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_p
 dt_poblacio_ESP<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_esp_20221118.rds")) %>% as_tibble()
 
 
+#ii)
+dt_diagnostics<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_diagnostics_20221118.rds"))%>%
+  as_tibble()
+
+
+#iii)
+dt_analitiques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_analitiques_20221118.rds"))%>%
+  as_tibble()
+
+dt_cliniques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_cliniques_20221118.rds"))%>%
+  as_tibble()
+# Fusiono cliniques + variables
+
+dt_variables<-dt_analitiques%>%
+   bind_rows(dt_cliniques)%>%
+    select(-agr)%>%
+     left_join(select(dt_cataleg,cod,agr),by="cod")%>% 
+       select(-cod)%>%
+        rename(cod=agr)
+
+
+
+#iv)
+dt_facturacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_facturats_20221118.rds"))%>%
+  as_tibble()
+#v)
+dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_prescrits_20221118.rds"))%>%
+   as_tibble()
 
 ```
 ##2. Generar DataIndex Disseny Transversal
-```{r generem la data_Index, include=F}
+```{r generem la data_Index1, include=F}
 
 # 2 Data.Index -----------
 
 #[29.4.2021]#:
 
 #[29.4.2021]#: (2016-2018)
-dt_index<-
+dt_index0<-
   dt_poblacio %>% select(idp,entrada,sortida) %>% mutate(kk=1) %>%
   left_join(tibble(dtindex=seq(params$bd.dindex1,params$bd.dindex2,by=10000),kk=1),by="kk") %>%
   filter(entrada<=dtindex & dtindex<=sortida)  %>%  # Filtro per usuari actiu en data index
   select(-c(kk,entrada,sortida))
 
 gc()
+
+
+```
+## 2. Generacio DataIndex DM2-Debut
+
+```{r generacio_dtindex2, include=F}
+
+
+# Codis de inclusió 
+dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>% 
+  select(domini,cod,agr) %>% 
+  filter(agr=="DM2")
+
+
+#i) Busco la data minima del primer diagnostic de Dm2, de cada pacient.
+dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
+                                           bd.dindex = 20181231,
+                                           dt.agregadors=select(dt_cataleg2,cod,agr=agr),
+                                           finestra.dies=c(-Inf,+Inf),prefix = "Diag_",cataleg_mana=T) %>% 
+                                                select(idp,dtindex=Diag_DM2) 
+
+
+
+# Codis de inclusió 
+dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>% 
+  select(domini,cod,agr) %>% 
+  filter(agr=="ANTIDIAB")
+
+#ii) Busco la data minima del primer diagnostic de Farmac facturat de Dm2, de cada pacient.
+dt_index2a<- 
+  dt_facturacio %>% agregar_facturacio(finestra.dies = c(-Inf,+Inf),
+                                     dt.agregadors=select(dt_cataleg2,cod,agr=agr),
+                                     prefix = "FF.",camp_agregador="agr",agregar_data=T)%>%  
+                                     transmute(idp,dtindex=data.to.string(FF.ANTIDIAB) %>% as.integer())
+
+
+
+dt_index2b<- 
+  dt_prescripcions %>% agregar_prescripcions(finestra.dies = c(-Inf,+Inf),
+                                     dt.agregadors=select(dt_cataleg2,cod,agr=agr),
+                                     prefix = "FP.",camp_agregador="agr",agregar_data=T)%>%  
+                                     transmute(idp,dtindex=data.to.string(FP.ANTIDIAB) %>% as.integer())
+
+
+
+#iii) Busco la data minima  d'una GLICADA >=6.5, de cada pacient.
+dt_index3<- 
+  dt_variables %>% filter(cod=="GLICADA") %>% 
+  filter(val>=6.5) %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% 
+  select(idp,dtindex=dat)
+
+
+
+#dt_index1
+#dt_index2
+#dt_index3
+
+#iv) Un cop tinc les tres Dates minimes,escolleixo la MÍNIMA.
+
+# Fusió de tot 
+dt_index<-
+  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) %>% bind_rows(dt_index3) %>% 
+  group_by(idp) %>%  slice(which.min(dtindex)) %>% ungroup() 
+
+#prova:
+
+dt_index<-
+  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) 
+
 
 
 ```
@@ -148,43 +245,17 @@ gc()
 
 
 
-#ii)
+#vi)
 dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_tabaquisme_20221118.rds"))%>% 
   as_tibble()%>% 
     semi_join(dt_index,by="idp")
 
-#iii)
-dt_analitiques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_analitiques_20221118.rds"))%>%
-  as_tibble()
-
-dt_cliniques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_cliniques_20221118.rds"))%>%
-  as_tibble()
-# Fusiono cliniques + variables
-
-dt_variables<-dt_analitiques%>%
-   bind_rows(dt_cliniques)%>%
-    select(-agr)%>%
-     left_join(select(dt_cataleg,cod,agr),by="cod")%>% 
-       select(-cod)%>%
-        rename(cod=agr)%>%
-          semi_join(dt_index,by="idp")
 
 
 
-#iv)
-dt_diagnostics<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_diagnostics_20221118.rds"))%>%
-  as_tibble()%>%
-   semi_join(dt_index,by="idp")
 
-#v)
-dt_facturacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_facturats_20221118.rds"))%>%
-  as_tibble()%>%
-   semi_join(dt_index,by="idp")
 
-#vi)
-dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_prescrits_20221118.rds"))%>%
-   as_tibble()%>%
-    semi_join(dt_index,by="idp")
+
 
 ```
 
