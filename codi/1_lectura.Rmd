@@ -175,7 +175,7 @@ dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>%
 
 #i) Busco la data minima del primer diagnostic de Dm2, de cada pacient.
 dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
-                                           bd.dindex = 20181231,
+                                           bd.dindex = 20221212,
                                            dt.agregadors=select(dt_cataleg2,cod,agr=agr),
                                            finestra.dies=c(-Inf,+Inf),prefix = "Diag_",cataleg_mana=T) %>% 
                                                 select(idp,dtindex=Diag_DM2) 
