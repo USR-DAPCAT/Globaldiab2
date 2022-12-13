@@ -508,6 +508,13 @@ conductor<-here::here("conductor.xlsx")
 dades<-etiquetar_valors(dt=dades,variables_factors=conductor,fulla="etiquetes",camp_etiqueta="etiqueta1")
 
 
+
+#Se excluirán las personas con diabetes gestacional, diabetes secundaria 
+#(p. ej., inducida por fármacos, inducida por sustancias químicas, 
+#insuficiencia pancreática exocrina y defectos genéticos), 
+#diabetes de inicio en la madurez de los jóvenes y formas raras de diabetes.
+
+
 #Apliquem que surtin els MISSINGS a les TAULES , a partir del CONDUCTOR!
 #dades<-dades%>%mutate_at(extreure.variables("missings",conductor,dt=dades),as.factor)
 

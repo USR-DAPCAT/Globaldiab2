@@ -72,10 +72,10 @@ library("dplyr")
 library("Platan")
 
 
-#devtools::install_github("USR-DAPCAT/Platan")
-#devtools::install_github("USR-DAPCAT/FormatGe")
-#devtools::install_github("USR-DAPCAT/Macedonia")
-#devtools::install_github("USR-DAPCAT/ggflowchart2")
+#devtools::install_github("USR-DAPCAT/Platan",build_vignettes = TRUE)
+#devtools::install_github("USR-DAPCAT/FormatGe",build_vignettes = TRUE)
+#devtools::install_github("USR-DAPCAT/Macedonia",build_vignettes = TRUE)
+#devtools::install_github("USR-DAPCAT/ggflowchart2",build_vignettes = TRUE)
 #library("Platan")
 #library("FormatGe")
 #library("Macedonia")
@@ -199,15 +199,15 @@ dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entrega
 # 4 Agregacio dels nostres fitxers a partir del cataleg -----------
 
 
-#Falta apartat  b) i c)
+#Falta apartat  a) ,b) i c)
 
 #1.	La diabetes se determinará y definirá sobre la base de un diagnóstico o código de diagnóstico proporcionado por un profesional sanitario pertinente, o al menos dos de:
 
-#a.	la presencia de dos o más valores de glucosa en sangre o HbA1c dentro de los rangos de diagnóstico para diabetes (glucosa en plasma en ayunas ≥7,0 mmol/l (126 mg/dl), glucosa en plasma al azar o a las 2 horas ≥11,1 mmol/l (200 mg/dl) ) o HbA1c ≥6,5 % (48 mmol/mol)), en un período de 6 meses;
+#a).	la presencia de dos o más valores de glucosa en sangre o HbA1c dentro de los rangos de diagnóstico para diabetes (glucosa en plasma en ayunas ≥7,0 mmol/l (126 mg/dl), glucosa en plasma al azar o a las 2 horas ≥11,1 mmol/l (200 mg/dl) ) o HbA1c ≥6,5 % (48 mmol/mol)), en un período de 6 meses;
 
-#b.	prescripción de medicamentos para bajar la glucosa durante al menos 3 meses;
+#b).	prescripción de medicamentos para bajar la glucosa durante al menos 3 meses;
 
-#c.	la prestación de un servicio exclusivo para las personas con diabetes.
+#c).	la prestación de un servicio exclusivo para las personas con diabetes.
 
 
 
