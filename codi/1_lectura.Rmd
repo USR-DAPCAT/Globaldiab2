@@ -252,13 +252,63 @@ K2<-agregar_prescripcions(dt=dt_prescripcions2,
 K2%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
-dt_prescripcions%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
 
+dt=dt_prescripcions2%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+bd.dindex=20220101
+finestra.dies=c(-Inf,0)
+dt.agregadors=dt_cataleg2
+prefix="FP."
+camp_agregador="agr"
+agregar_data=TRUE
+cataleg_mana =FALSE
+acumular=NULL
+finestra.dies = ifelse(finestra.dies == +Inf, 99999, finestra.dies)
+finestra.dies = ifelse(finestra.dies == -Inf, -99999, finestra.dies)
+dt <- afegir_dataindex(dt, bd.dindex)
+dt <- dt %>% dplyr::mutate(dat = lubridate::ymd(dat), dbaixa = ifelse(is.na(dbaixa),30160101, dbaixa), dbaixa = lubridate::ymd(dbaixa), dtindex = lubridate::ymd(dtindex))
+dt.agregadors <- dt.agregadors %>% dplyr::select_("cod",agr = camp_agregador)
+dt.agregadors <- dt.agregadors %>% dplyr::filter(!is.na(agr))
+
+prescripcions_agr <- dt %>% dplyr::select(idp, dtindex, cod,dat, dbaixa, acumular) %>% 
+  dplyr::mutate(overlap = pmax(pmin(dtindex + lubridate::days(finestra.dies[2]), dbaixa) - pmax(dtindex + lubridate::days(finestra.dies[1]), dat) + 1, 0),overlap= as.numeric(overlap))%>% 
+        dplyr::filter(overlap > 0)
+    
+prescripcions_agr1 <- prescripcions_agr %>% dplyr::inner_join(dplyr::select(dt.agregadors,c(cod, agr)), by = "cod") %>% dplyr::distinct(idp,dtindex, cod, agr, .keep_all = TRUE)
+   
 
 
+dt=dt_prescripcions2%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+bd.dindex=20061201
+finestra.dies=c(-Inf,0)
+dt.agregadors=dt_cataleg2
+prefix="FP."
+camp_agregador="agr"
+agregar_data=TRUE
+cataleg_mana =FALSE
+acumular=NULL
+finestra.dies = ifelse(finestra.dies == +Inf, 99999, finestra.dies)
+finestra.dies = ifelse(finestra.dies == -Inf, -99999, finestra.dies)
+dt <- afegir_dataindex(dt, bd.dindex)
+dt <- dt %>% dplyr::mutate(dat = lubridate::ymd(dat), dbaixa = ifelse(is.na(dbaixa),30160101, dbaixa), dbaixa = lubridate::ymd(dbaixa), dtindex = lubridate::ymd(dtindex))
+dt.agregadors <- dt.agregadors %>% dplyr::select_("cod",agr = camp_agregador)
+dt.agregadors <- dt.agregadors %>% dplyr::filter(!is.na(agr))
 
+prescripcions_agr <- dt %>% dplyr::select(idp, dtindex, cod,dat, dbaixa, acumular) %>% 
+  dplyr::mutate(overlap = pmax(pmin(dtindex + lubridate::days(finestra.dies[2]), dbaixa) - pmax(dtindex + lubridate::days(finestra.dies[1]), dat) + 1, 0),overlap= as.numeric(overlap))%>% 
+        dplyr::filter(overlap > 0)
+    
+prescripcions_agr2 <- prescripcions_agr %>% dplyr::inner_join(dplyr::select(dt.agregadors,c(cod, agr)), by = "cod") %>% dplyr::distinct(idp,dtindex, cod, agr, .keep_all = TRUE)
+
+dt<-dt %>%arrange(idp,cod,dat)        
+
+prescripcions_agr1
+prescripcions_agr2  
+dt        
+        
+        
+        
 
 #iii) Busco la data minima  d'una GLICADA >=6.5, de cada pacient.
 dt_index3<- 
