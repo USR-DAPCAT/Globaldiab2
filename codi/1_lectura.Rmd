@@ -197,10 +197,15 @@ dt_index2a<-
 
 dt_index2a%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
+
+dt_prescripcions2<- dt_prescripcions%>%mutate(dbaixa=20221231)
+
 dt_index2b<- 
-  dt_prescripcions %>% agregar_prescripcions(finestra.dies = c(-Inf,+Inf),
+  dt_prescripcions2 %>% agregar_prescripcions(finestra.dies = c(-Inf,0),
                                      dt.agregadors=select(dt_cataleg2,cod,agr=agr),
-                                     prefix = "FP.",camp_agregador="agr",agregar_data=T)%>%  
+                                     prefix = "FP.",
+                                     camp_agregador="agr",
+                                     agregar_data=T)%>%  
                                      transmute(idp,dtindex=data.to.string(FP.ANTIDIAB) %>% as.integer())
 
 
@@ -219,8 +224,8 @@ dt_index2b%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
 
-#Agregacio Farmacs Prescripcions.
-K1<-agregar_prescripcions(dt=dt_prescripcions,
+#Agregacio Farmacs Prescripcions.????
+K1<-agregar_prescripcions(dt=dt_prescripcions2,
                                            bd.dindex=20220101,
                                            finestra.dies=c(-Inf,0),
                                            dt.agregadors=dt_cataleg2,
@@ -232,13 +237,12 @@ K1<-agregar_prescripcions(dt=dt_prescripcions,
 K1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
-dt_prescripcions%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
-#Agregacio Farmacs Prescripcions.
-K2<-agregar_prescripcions(dt=dt_prescripcions,
-                                           bd.dindex=10001201,
-                                           finestra.dies=c(-Inf,+Inf),
+#Agregacio Farmacs Prescripcions.???
+K2<-agregar_prescripcions(dt=dt_prescripcions2,
+                                           bd.dindex=20061201,
+                                           finestra.dies=c(-Inf,0),
                                            dt.agregadors=dt_cataleg2,
                                            prefix="FP.",
                                            camp_agregador="agr",
@@ -248,11 +252,11 @@ K2<-agregar_prescripcions(dt=dt_prescripcions,
 K2%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
+dt_prescripcions%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
 
-variable.names(dtagr_prescripcions)
-table(dtagr_prescripcions$FP.ANTIDIAB)
+
 
 
 
