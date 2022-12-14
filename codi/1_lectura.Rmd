@@ -70,7 +70,7 @@ dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod
 library("devtools")
 library("dplyr")
 library("Platan")
-
+library("FormatGe")
 
 #devtools::install_github("USR-DAPCAT/Platan",build_vignettes = TRUE)
 #devtools::install_github("USR-DAPCAT/FormatGe",build_vignettes = TRUE)
@@ -180,6 +180,7 @@ dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
                                            finestra.dies=c(-Inf,+Inf),prefix = "Diag_",cataleg_mana=T) %>% 
                                                 select(idp,dtindex=Diag_DM2) 
 
+dt_index1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
 # Codis de inclusió 
@@ -192,15 +193,66 @@ dt_index2a<-
   dt_facturacio %>% agregar_facturacio(finestra.dies = c(-Inf,+Inf),
                                      dt.agregadors=select(dt_cataleg2,cod,agr=agr),
                                      prefix = "FF.",camp_agregador="agr",agregar_data=T)%>%  
-                                     transmute(idp,dtindex=data.to.string(FF.ANTIDIAB) %>% as.integer())
+                                     transmute(idp,dtindex=data.to.string(FF.ANTIDIAB)%>% as.integer()) 
 
-
+dt_index2a%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 dt_index2b<- 
   dt_prescripcions %>% agregar_prescripcions(finestra.dies = c(-Inf,+Inf),
                                      dt.agregadors=select(dt_cataleg2,cod,agr=agr),
                                      prefix = "FP.",camp_agregador="agr",agregar_data=T)%>%  
                                      transmute(idp,dtindex=data.to.string(FP.ANTIDIAB) %>% as.integer())
+
+
+dt_index2b<- 
+  dt_prescripcions %>% agregar_prescripcions(finestra.dies = c(-Inf,+Inf),
+                                     dt.agregadors=select(dt_cataleg2,cod,agr=agr),
+                                     prefix = "FP.",
+                                     camp_agregador="agr",
+                                     agregar_data=T)%>%  
+                                     transmute(idp,dtindex=data.to.string(FP.ANTIDIAB) %>% as.integer())
+
+
+
+
+dt_index2b%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+
+
+
+#Agregacio Farmacs Prescripcions.
+K1<-agregar_prescripcions(dt=dt_prescripcions,
+                                           bd.dindex=20220101,
+                                           finestra.dies=c(-Inf,0),
+                                           dt.agregadors=dt_cataleg2,
+                                           prefix="FP.",
+                                           camp_agregador="agr",
+                                           agregar_data=TRUE,
+                                           cataleg_mana =FALSE,
+                                           acumular=NULL)
+K1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+
+
+dt_prescripcions%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+
+
+#Agregacio Farmacs Prescripcions.
+K2<-agregar_prescripcions(dt=dt_prescripcions,
+                                           bd.dindex=10001201,
+                                           finestra.dies=c(-Inf,+Inf),
+                                           dt.agregadors=dt_cataleg2,
+                                           prefix="FP.",
+                                           camp_agregador="agr",
+                                           agregar_data=TRUE,
+                                           cataleg_mana =FALSE,
+                                           acumular=NULL)
+K2%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+
+
+
+
+
+variable.names(dtagr_prescripcions)
+table(dtagr_prescripcions$FP.ANTIDIAB)
 
 
 
@@ -210,7 +262,7 @@ dt_index3<-
   filter(val>=6.5) %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% 
   select(idp,dtindex=dat)
 
-
+dt_index3%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 #dt_index1
 #dt_index2
@@ -228,7 +280,19 @@ dt_index<-
 #dt_index<-
 #  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) 
 
+dt_index%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
+#00d79410ce05217612c77d1b38b85970a7622a56
+
+
+dt_index1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+dt_index2a%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+dt_index2b%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+dt_index3%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+
+dt_index%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+
+dtagr_prescripcions%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 ```
 ## 3. Lectura posterior a DataIndex 
@@ -278,38 +342,43 @@ dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable
 dtagr_diagnostics<-agregar_problemes(dplyr::select(dt_diagnostics,idp,cod,dat),
                                      bd.dindex = dt_index,
                                      dt.agregadors=dt_cataleg,
-                                     finestra.dies=c(-Inf,0),prefix = "DG.",
+                                     finestra.dies=c(-Inf,-1),prefix = "DG.",
                                      cataleg_mana=FALSE)
 
-
+variable.names(dtagr_diagnostics)
 
 
 #Agregacio Farmacs Facturats.
 dtagr_facturacio<-agregar_facturacio(dt=dt_facturacio,
                                      bd.dindex=dt_index,
-                                     finestra.dies=c(-Inf,0),
+                                     finestra.dies=c(-Inf,-1),
                                      dt.agregadors=dt_cataleg,
                                      prefix="FF.",
                                      camp_agregador="agr",
-                                     agregar_data=FALSE,
+                                     agregar_data=TRUE,
                                      cataleg_mana=FALSE,
                                      acumular=NULL)
+
+variable.names(dtagr_facturacio)
+
 
 #Agregacio Farmacs Prescripcions.
 dtagr_prescripcions<-agregar_prescripcions(dt=dt_prescripcions,
                                            bd.dindex=dt_index,
-                                           finestra.dies=c(-Inf,0),
+                                           finestra.dies=c(-Inf,-1),
                                            dt.agregadors=dt_cataleg,
                                            prefix="FP.",
                                            camp_agregador="agr",
-                                           agregar_data=FALSE,
+                                           agregar_data=TRUE,
                                            cataleg_mana =FALSE,
                                            acumular=NULL)
+variable.names(dtagr_prescripcions)
+table(dtagr_prescripcions$FP.ANTIDIAB)
 
 #Agregacio Analitiques i Cliniques.
 dtagr_variables<-agregar_analitiques(dt=dt_variables,
                                      bd.dindex=dt_index,
-                                     finestra.dies = c(-Inf,0))
+                                     finestra.dies = c(-Inf,-1))
 
 #traiem la data Index, per la posterior unificacio.
 
@@ -374,7 +443,7 @@ domini=c("diagnostics",
 
 Finestra1=c(-Inf,-Inf,-Inf,-Inf)
 
-Finestra2=c(0,0,0,0)
+Finestra2=c(-1,-1,-1,-1)
 
 camp=c("agr","agr","agr","cod")
 
