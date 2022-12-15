@@ -181,7 +181,7 @@ taulaNs<-dt_temp2 %>% summarise(N2000=sum(sortida>=20000101 & entrada<=20000101)
 
 taulaNs %>% kable() %>% kableExtra::kable_classic_2()
 
-write.csv2(taulaNs,"taulaNs.csv")
+#write.csv2(taulaNs,"taulaNs.csv")
 
 
 
@@ -226,7 +226,7 @@ dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
                                            finestra.dies=c(-Inf,+Inf),prefix = "Diag_",cataleg_mana=T) %>% 
                                                 select(idp,dtindex=Diag_DM2) 
 
-dt_index1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+#dt_index1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
 
@@ -316,9 +316,9 @@ dt_temp<-dt_index%>%
 # filtrar per any!!, i o reonvertim dt_index.
 
 dt_temp<-dt_temp %>%select(idp,dtindex)
-#dt_index<-dt_temp
+dt_index<-dt_temp
 
-dt_temp
+#dt_temp
 
 ```
 ## 3. Lectura posterior a DataIndex 
@@ -442,13 +442,13 @@ Fusionar part dels arxius agregats
 
 dt_plana1<-dt_index%>%
 left_join(dt_poblacio,by="idp")%>%
-  left_join(dt_poblacio_ESP,by="idp")%>%
-   left_join(dtagr_diagnostics,by="idp")%>%
+  left_join(dtagr_diagnostics,by="idp")%>%
     left_join(dtagr_facturacio,by="idp")%>%
      left_join(dtagr_prescripcions,by="idp")%>%
       left_join(dtagr_variables,by="idp")
        
   
+#left_join(dt_poblacio_ESP,by="idp")%>%
 
 
 ```
@@ -491,8 +491,10 @@ cataleg=dt_cataleg,
 parametres=dt_parametres)
 
 dt_plana2<-KK%>%
-  left_join(dt_poblacio,by="idp")%>%
-     left_join(dt_poblacio_ESP,by="idp")
+  left_join(dt_poblacio,by="idp")
+
+#%>%
+#left_join(dt_poblacio_ESP,by="idp")
 
 
 
