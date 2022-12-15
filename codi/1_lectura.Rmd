@@ -197,11 +197,30 @@ dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>%
 
 
 
-dt_index2a<- 
-  dt_facturacio %>% agregar_facturacio(finestra.dies = c(-Inf,+Inf),
-                                     dt.agregadors=select(dt_cataleg2,cod,agr=agr),
-                                     prefix = "FF.",camp_agregador="agr",agregar_data=T)%>%  
-                                     transmute(idp,dtindex=data.to.string(FF.ANTIDIAB)%>% as.integer()) 
+#dt_index2a<- 
+#  dt_facturacio %>% agregar_facturacio(finestra.dies = c(-Inf,+Inf),
+#                                     dt.agregadors=select(dt_cataleg2,cod,agr=agr),
+#                                     prefix = "FF.",
+#                                     camp_agregador="agr",
+#                                     agregar_data=T)%>%  
+#                                     transmute(idp,dtindex=data.to.string(FF.ANTIDIAB)%>% as.integer()) 
+
+
+dt_facturacio2<-dt_facturacio%>%mutate(dbaixa=20223112,dat=(paste0(as.character(dat), "15")))
+
+
+
+dt_index2a<-agregar_problemes(dt=dt_facturacio2,
+                                           bd.dindex=20220101,
+                                           finestra.dies=c(-Inf,+Inf),
+                                           dt.agregadors=dt_cataleg2,
+                                           prefix="FF.",
+                                           camp_agregador="agr",
+                                           cataleg_mana =FALSE)%>%
+                                             transmute(idp,dtindex=FF.ANTIDIAB)
+
+dt_index2a<-dt_index2a%>%mutate(dtindex=as.integer(dtindex))
+
 
 #dt_index2a%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
