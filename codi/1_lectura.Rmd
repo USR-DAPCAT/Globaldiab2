@@ -19,8 +19,8 @@ output:
 params:
   dir_dades_origen: "../../DADES/GLOBALDIAB2/mostra" # "../../DADES/GLOBALDIAL2/mostra"
   dir_dades_desti: "dades" 
-  bd.dindex1: '20201231'
-  bd.dindex2: '20201231'
+  bd.dindex1: '20190101'
+  bd.dindex2: '20190101'
 ---
 
 
@@ -69,6 +69,7 @@ dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod
 #
 library("devtools")
 library("dplyr")
+library("kableExtra")
 library("Platan")
 library("FormatGe")
 
@@ -145,6 +146,51 @@ dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entrega
    as_tibble()
 
 ```
+
+
+```{r calcul_deNs, include=T, warning=FALSE}
+
+# Actualitzo data sortida en funció de trasllat (situacio=="T")
+# Obviem Trasllats
+
+dt_temp<-dt_poblacio
+
+dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", sortida, 20201231))
+
+
+taulaNs<-dt_temp2 %>% summarise(N2000=sum(sortida>=20000101 & entrada<=20000101),
+                                N2001=sum(sortida>=20010101 & entrada<=20010101),
+                                N2002=sum(sortida>=20020101 & entrada<=20020101),
+                                N2003=sum(sortida>=20030101 & entrada<=20030101),
+                                N2004=sum(sortida>=20040101 & entrada<=20040101),
+                                N2005=sum(sortida>=20050101 & entrada<=20050101),
+                                N2006=sum(sortida>=20060101 & entrada<=20060101),
+                                N2007=sum(sortida>=20070101 & entrada<=20070101),
+                                N2008=sum(sortida>=20080101 & entrada<=20080101),
+                                N2009=sum(sortida>=20090101 & entrada<=20090101),
+                                N2010=sum(sortida>=20100101 & entrada<=20100101),
+                                N2011=sum(sortida>=20110101 & entrada<=20110101),
+                                N2012=sum(sortida>=20120101 & entrada<=20120101),
+                                N2013=sum(sortida>=20130101 & entrada<=20130101),
+                                N2014=sum(sortida>=20140101 & entrada<=20140101),
+                                N2015=sum(sortida>=20150101 & entrada<=20150101),
+                                N2016=sum(sortida>=20160101 & entrada<=20160101),
+                                N2017=sum(sortida>=20170101 & entrada<=20170101),
+                                N2018=sum(sortida>=20180101 & entrada<=20180101),
+                                N2019=sum(sortida>=20190101 & entrada<=20190101))
+
+taulaNs %>% kable() %>% kableExtra::kable_classic_2()
+
+write.csv2(taulaNs,"taulaNs.csv")
+
+
+
+
+
+
+```
+
+
 ##2. Generar DataIndex Disseny Transversal
 ```{r generem la data_Index1, include=F}
 
@@ -241,12 +287,6 @@ dt_index2b<-agregar_problemes(dt=dt_prescripcions,
 #dt_index2b%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
-
-
-
-
-
-
 #iii) Busco la data minima  d'una GLICADA >=6.5, de cada pacient.
 dt_index3<- 
   dt_variables %>% filter(cod=="GLICADA") %>% 
@@ -266,24 +306,19 @@ dt_index<-
   dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) %>% bind_rows(dt_index3) %>% 
   group_by(idp) %>%  slice(which.min(dtindex)) %>% ungroup() 
 
-#prova:
-
-#dt_index<-
-#  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) 
-
-#dt_index%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
-
-#00d79410ce05217612c77d1b38b85970a7622a56
 
 
-#dt_index1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
-#dt_index2a%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
-#dt_index2b%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
-#dt_index3%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+dt_temp<-dt_index%>%
+  left_join(dt_poblacio,by="idp") %>% 
+    mutate(sortida=ifelse(situacio=="T", sortida, 20201231))%>%
+     filter(sortida>=params$bd.dindex1 & entrada<=params$bd.dindex1)
+  
+# filtrar per any!!, i o reonvertim dt_index.
 
-#dt_index%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+dt_temp<-dt_temp %>%select(idp,dtindex)
+#dt_index<-dt_temp
 
-#dtagr_prescripcions%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+dt_temp
 
 ```
 ## 3. Lectura posterior a DataIndex 
@@ -407,7 +442,8 @@ Fusionar part dels arxius agregats
 
 dt_plana1<-dt_index%>%
 left_join(dt_poblacio,by="idp")%>%
-  left_join(dtagr_diagnostics,by="idp")%>%
+  left_join(dt_poblacio_ESP,by="idp")%>%
+   left_join(dtagr_diagnostics,by="idp")%>%
     left_join(dtagr_facturacio,by="idp")%>%
      left_join(dtagr_prescripcions,by="idp")%>%
       left_join(dtagr_variables,by="idp")
@@ -455,7 +491,8 @@ cataleg=dt_cataleg,
 parametres=dt_parametres)
 
 dt_plana2<-KK%>%
-  left_join(dt_poblacio,by="idp")
+  left_join(dt_poblacio,by="idp")%>%
+     left_join(dt_poblacio_ESP,by="idp")
 
 
 
