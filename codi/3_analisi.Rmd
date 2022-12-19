@@ -61,9 +61,9 @@ Desembre / 2022
 
 &check; Revision , depuracion de  errores y exclusiones   <br/>
 
-# Fase de validacio de base
+# Fase de validacion de base
 
-## Fase Preparacio
+## Fase Preparacion
 
 
 ```{r setup, include = FALSE}
@@ -113,7 +113,7 @@ dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana2.rds")) %>% as_tibble
 
 
 ```
-## 1f. Recodificacions de zeros i uns nous+dates
+## 1. Recodificaciones de zeros,unos y fechas
 ```{r recodificacions6}
 
 #dades<-dt_plana
