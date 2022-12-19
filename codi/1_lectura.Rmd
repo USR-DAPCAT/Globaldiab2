@@ -139,7 +139,7 @@ dt_variables<-dt_analitiques%>%
 
 
 #iv)
-dt_facturacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_facturats_20221118.rds"))%>%
+dt_facturacions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_facturats_20221118.rds"))%>%
   as_tibble()
 #v)
 dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_prescrits_20221118.rds"))%>%
@@ -183,11 +183,6 @@ taulaNs %>% kable() %>% kableExtra::kable_classic_2()
 
 #write.csv2(taulaNs,"taulaNs.csv")
 
-
-
-
-
-
 ```
 
 
@@ -215,10 +210,12 @@ gc()
 
 ##Nota SIDIAP:
 # - Condició c) no disponible
+
 # - Codis Diagnostics segons cataleg proporcionat (Només E-CAP)
 # - CMBDH no disponible 
-# - Condició b) Prescripció de com a mínim 3 mesos glucose-lowering medication  
-#	Una vegada definit l’agregador
+
+
+# - Condició b) Prescripció de com a mínim 3 mesos glucose-lowering medication una vegada definit l’agregador
 #1.	Temps acumulat de prescripció > 3mesos  
 #2.	3 envasos de facturació 
 #
@@ -227,6 +224,13 @@ gc()
 #-	2 o més >=6.5 
 #-	Temps entre la primera I la última <=6 mesos  (Data 1a I data ultima)
 
+
+
+
+
+
+# - Codis Diagnostics segons cataleg proporcionat (Només E-CAP)
+# - CMBDH no disponible 
 
 
 # Codis de inclusió 
@@ -249,6 +253,11 @@ dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
 
 
 
+
+# - Condició b) Prescripció de com a mínim 3 mesos glucose-lowering medication una vegada definit l’agregador
+#1.	Temps acumulat de prescripció > 3mesos  
+#2.	3 envasos de facturació 
+
 # Codis de inclusió 
 dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>% 
   select(domini,cod,agr) %>% 
@@ -257,22 +266,11 @@ dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>%
 #ii) Busco la data minima del primer diagnostic de Farmac facturat de Dm2, de cada pacient.
 
 
-
-
-#dt_index2a<- 
-#  dt_facturacio %>% agregar_facturacio(finestra.dies = c(-Inf,+Inf),
-#                                     dt.agregadors=select(dt_cataleg2,cod,agr=agr),
-#                                     prefix = "FF.",
-#                                     camp_agregador="agr",
-#                                     agregar_data=T)%>%  
-#                                     transmute(idp,dtindex=data.to.string(FF.ANTIDIAB)%>% as.integer()) 
-
-
-dt_facturacio2<-dt_facturacio%>%mutate(dbaixa=20223112,dat=(paste0(as.character(dat), "15")))
+dt_facturacions2<-dt_facturacions%>%mutate(dbaixa=20223112,dat=(paste0(as.character(dat), "15")))
 
 
 
-dt_index2a<-agregar_problemes(dt=dt_facturacio2,
+dt_index2a<-agregar_problemes(dt=dt_facturacions2,
                                            bd.dindex=20220101,
                                            finestra.dies=c(-Inf,+Inf),
                                            dt.agregadors=dt_cataleg2,
@@ -284,7 +282,34 @@ dt_index2a<-agregar_problemes(dt=dt_facturacio2,
 dt_index2a<-dt_index2a%>%mutate(dtindex=as.integer(dtindex))
 
 
+temp_facturacions<-dt_facturacions%>% 
+    semi_join(dt_index2a,by="idp")  
+
+
+temp_facturacions2<- 
+  temp_facturacions %>% agregar_facturacio(finestra.dies = c(-Inf,+Inf),
+                                     dt.agregadors=select(dt_cataleg2,cod,agr=agr),
+                                     prefix = "FF.",
+                                     camp_agregador="agr",
+                                     agregar_data=FALSE)%>%filter(FF.ANTIDIAB>3)
+
+
+
+
+dt_index2a<-dt_index2a%>% 
+    semi_join(temp_facturacions2,by="idp")  
+
+
+
 #dt_index2a%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+#mirarem , aquells que tenen la data minim, si compleixen que tenen com a minim 3 envasos!
+
+
+
+
+
+
+
 
 
 
@@ -298,16 +323,62 @@ dt_index2b<-agregar_problemes(dt=dt_prescripcions,
                                            ) %>% transmute(idp,dtindex=FP.ANTIDIAB) 
                       
   
-  
+
+temp_prescripcions<-dt_prescripcions%>% 
+    semi_join(dt_index2b,by="idp")  
+
+#Agregacio Farmacs Prescripcions.: temps acumulat de prescripció > 3mesos  
+temp_prescripcions2<-agregar_prescripcions(dt=temp_prescripcions,
+                                           bd.dindex=20220101,
+                                           finestra.dies=c(-Inf,+Inf),
+                                           dt.agregadors=dt_cataleg2,
+                                           prefix="FP.",
+                                           camp_agregador="agr",
+                                           agregar_data=FALSE,
+                                           cataleg_mana =FALSE,
+                                           acumular=NULL)%>%filter(FP.ANTIDIAB>90)
+
+dt_index2b<-dt_index2b%>% 
+    semi_join(temp_prescripcions2,by="idp")  
+
+
+
+
 
 #dt_index2b%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
 
+
+
+
+#Condició a) HbA1c
+#2 o més HbA1c >=6.5 dins d’un periode de 6 mesos: 
+#-	2 o més >=6.5 
+#-	Temps entre la primera I la última <=6 mesos  (Data 1a I data ultima)
+
+    
+mtcars %>%
+  group_by(cyl) %>%
+  summarise(disp = mean(disp), sd = sd(disp))    
+    
 #iii) Busco la data minima  d'una GLICADA >=6.5, de cada pacient.
 dt_index3<- 
   dt_variables %>% filter(cod=="GLICADA") %>% 
   filter(val>=6.5) %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% 
   select(idp,dtindex=dat)
+
+
+
+dt_index3<- 
+  dt_variables %>% filter(cod=="GLICADA") %>% 
+  filter(val>=6.5) %>% group_by(idp) %>% summarise(dtindex = min(dat),dat_min = min(dat),dat_max = max(dat),rest=lubridate::ymd(dat_max)-lubridate::ymd(dat_min))   %>% ungroup()
+
+dt_index3$rest<-as.numeric(dt_index3$rest)
+
+dt_index3<-dt_index3%>% filter(rest<=183 & rest>0 )%>%
+  select(idp,dtindex)
+
+
 
 #dt_index3%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
 
@@ -337,6 +408,91 @@ dt_index<-dt_temp
 #dt_temp
 
 ```
+
+```{r prova, eval=FALSE}
+
+
+
+
+#########
+# PROVA #
+#########
+
+dt=dt_prescripcions
+bd.dindex=20220101
+finestra.dies=c(-Inf,+Inf)
+dt.agregadors=dt_cataleg2
+prefix="FP."
+camp_agregador="agr"
+agregar_data=TRUE
+cataleg_mana =FALSE
+acumular=acumular
+
+
+finestra.dies = ifelse(finestra.dies == +Inf, 99999, finestra.dies)
+finestra.dies = ifelse(finestra.dies == -Inf, -99999, finestra.dies)
+
+dt <- afegir_dataindex(dt, bd.dindex)
+dt <- dt %>% dplyr::mutate(dat = lubridate::ymd(dat), dbaixa = ifelse(is.na(dbaixa), 
+        30160101, dbaixa), dbaixa = lubridate::ymd(dbaixa), dtindex = lubridate::ymd(dtindex))
+dt.agregadors <- dt.agregadors %>% dplyr::select_("cod",agr = camp_agregador)
+dt.agregadors <- dt.agregadors %>% dplyr::filter(!is.na(agr))
+
+prescripcions_agr <- dt %>% dplyr::select(idp, dtindex, cod, 
+        dat, dbaixa, acumular) %>% dplyr::mutate(overlap = pmax(pmin(dtindex + 
+        lubridate::days(finestra.dies[2]), dbaixa) - pmax(dtindex + 
+        lubridate::days(finestra.dies[1]), dat) + 1, 0), overlap = as.numeric(overlap)) %>% 
+        dplyr::filter(overlap > 0)
+    
+    
+    
+    if (is.null(acumular)) {
+        prescripcions_agr <- prescripcions_agr %>% dplyr::inner_join(dplyr::select(dt.agregadors, 
+            c(cod, agr)), by = "cod") %>% dplyr::distinct(idp, 
+            dtindex, cod, agr, .keep_all = TRUE)
+    }
+    if (!is.null(acumular)) {
+        acumular <- rlang::sym(acumular)
+        prescripcions_agr <- prescripcions_agr %>% dplyr::inner_join(dplyr::select(dt.agregadors, 
+            c(cod, agr)), by = "cod") %>% dplyr::distinct(idp, 
+            dtindex, cod, agr, !!acumular, .keep_all = TRUE)
+    }
+    if (!(agregar_data) & is.null(acumular)) {
+        prescripcions_agr <- prescripcions_agr %>% dplyr::group_by(idp, 
+            dtindex, agr) %>% dplyr::summarise(FX = sum(overlap, 
+            na.rm = T)) %>% dplyr::ungroup()
+    }
+    if (!is.null(acumular)) {
+        prescripcions_agr <- prescripcions_agr %>% dplyr::group_by(idp, 
+            dtindex, agr) %>% dplyr::summarise(FX = sum(overlap * 
+            !!acumular, na.rm = T)) %>% dplyr::ungroup()
+    }
+    if (agregar_data) {
+        prescripcions_agr <- prescripcions_agr %>% dplyr::mutate(int1 = dtindex + 
+            lubridate::days(finestra.dies[1]), data0 = ifelse(dat >= 
+            int1, dat, int1), data0 = lubridate::as_date(data0)) %>% 
+            tibble::as_tibble() %>% dplyr::select(idp, dtindex, 
+            agr, dat = data0) %>% dplyr::group_by(idp, dtindex, 
+            agr) %>% dplyr::slice(which.min(dat)) %>% dplyr::ungroup() %>% 
+            dplyr::rename(FX = dat)
+    }
+    if (cataleg_mana) {
+        pp <- dplyr::select(dt.agregadors, agr) %>% dplyr::distinct() %>% 
+            dplyr::anti_join(prescripcions_agr %>% dplyr::distinct(agr), 
+                by = "agr")
+        porca <- prescripcions_agr %>% dplyr::distinct(idp, dtindex) %>% 
+            merge(pp) %>% tibble::as_tibble()
+        prescripcions_agr <- prescripcions_agr %>% dplyr::bind_rows(porca)
+    }
+    prescripcions_agr <- prescripcions_agr %>% tidyr::spread(agr, 
+        FX, sep = ".")
+    names(prescripcions_agr) <- sub("agr.", prefix, names(prescripcions_agr))
+    prescripcions_agr
+
+
+
+
+
 ## 3. Lectura posterior a DataIndex 
 ```{r lectura2, include=T}
 
