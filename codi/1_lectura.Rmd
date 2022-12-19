@@ -213,6 +213,22 @@ gc()
 ```{r generacio_dtindex2, include=F}
 
 
+##Nota SIDIAP:
+# - Condició c) no disponible
+# - Codis Diagnostics segons cataleg proporcionat (Només E-CAP)
+# - CMBDH no disponible 
+# - Condició b) Prescripció de com a mínim 3 mesos glucose-lowering medication  
+#	Una vegada definit l’agregador
+#1.	Temps acumulat de prescripció > 3mesos  
+#2.	3 envasos de facturació 
+#
+#Condició a) HbA1c
+#2 o més HbA1c >=6.5 dins d’un periode de 6 mesos: 
+#-	2 o més >=6.5 
+#-	Temps entre la primera I la última <=6 mesos  (Data 1a I data ultima)
+
+
+
 # Codis de inclusió 
 dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>% 
   select(domini,cod,agr) %>% 
