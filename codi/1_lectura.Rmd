@@ -18,7 +18,7 @@ output:
 
 params:
   dir_dades_origen: "../../DADES/GLOBALDIAB2/mostra" # "../../DADES/GLOBALDIAL2/mostra"
-  dir_dades_desti: "dades" 
+  dir_dades_desti: "dades/mostra" 
   bd.dindex1: '20190101'
   bd.dindex2: '20190101'
 ---
@@ -186,7 +186,7 @@ taulaNs %>% kable() %>% kableExtra::kable_classic_2()
 ```
 
 
-##2. Generar DataIndex Disseny Transversal
+##2. Generar DataIndex Diseno Transversal
 ```{r generem la data_Index1, include=F}
 
 # 2 Data.Index -----------
@@ -204,7 +204,7 @@ gc()
 
 
 ```
-## 2. Generacio DataIndex DM2-Debut
+## 2. Generar DataIndex DM2-Debut
 ```{r generacio_dtindex2, include=F}
 
 
@@ -434,9 +434,6 @@ dt_index<-dt_temp
 
 ```{r prova, eval=FALSE}
 
-
-
-
 #########
 # PROVA #
 #########
@@ -543,7 +540,7 @@ dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable
 
 
 ```
-## 4. Agregacio dels nostres fitxers a partir del cataleg
+## 4. Agregacion de nuestros ficheros a partir del catalago
 ```{r agregacio, include=T}
 
 # 4 Agregacio dels nostres fitxers a partir del cataleg -----------
@@ -631,7 +628,7 @@ dtagr_variables<-dtagr_variables%>%select(-dtindex)
 ```
 
 
-## 5. Fusio 1
+## 5. Fusion 1
 
 Fusionar part dels arxius agregats 
  
@@ -650,7 +647,7 @@ left_join(dt_poblacio,by="idp")%>%
 
 
 ```
-## 6. Generacio GranFuncio: Agregacio+Fusio i convertir a Taula Plana
+## 6. Generacion GranFuncio: Agregacion+Fusion y convertir a Tabla Plana
 ```{r GranFuncio,include=T}
 
 #Parametres:
@@ -698,159 +695,9 @@ dt_plana2<-KK%>%
 
 ```
 
-## 5. Salvar part1 
+## 5. Salvar parte1 
 ```{r SALVAR}
 saveRDS(dt_plana2, file=here::here(params$dir_dades_desti,"dt_plana.rds"))
 
 ```
-
-```{r Covid_diabetics1,eval=FALSE}
-#############################################################################################
-#                   B U S C A R     D I A B E T I C S                                              
-
-
-
-CATAL<-readxl::read_excel(conductor_codis2,col_types = "text")%>%dplyr::select(cod,agr5,agrE09,agrE10,agrE11)%>%filter(agr5=="DM")
-CATAL_INSU<-readxl::read_excel(conductor_codis2,col_types = "text")%>%dplyr::select(cod,agr6)%>%filter(agr6=="INSU")
- 
-#----------------------------------------------------------------------------#
-dt_plana_covid5_gather2<-dt_plana_covid5_gather%>% transmute(idp=PATIENT.ID,cod=CIE10,dat="20200520")
-dt_plana_covid6_gather2<-dt_plana_covid6_gather%>% transmute(idp=PATIENT.ID,cod=CIE10,dat="20200520")
-# Fusiono dt_PROBLEMES (dt_plana_covid5_gather +dt_plana_covid6_gather )
-dt_plana_covid56_gather2<-dt_plana_covid5_gather2%>%bind_rows(dt_plana_covid6_gather2)%>%arrange(idp)
-#----------------------------------------------------------------------------#
-dt_plana_DM_agr1<-agregar_problemes(dplyr::select(dt_plana_covid56_gather2,idp,cod,dat),
-                                    bd.dindex = "20000601",
-                                    dt.agregadors=dplyr::select(dt_cataleg2,cod,agr=agr5),
-                                    finestra.dies=c(-Inf,Inf),prefix = "DM_P.") 
-
-
-
-#----------------------------------------------------------------------------#
-#dt_plana_DM_agr1
-#----------------------------------------------------------------------------#
-GRUP1<-dt_plana_covid56_gather2%>%inner_join(dt_plana_DM_agr1,by="idp")%>%dplyr::select(idp,cod)
-GRUP1<-GRUP1%>%inner_join(CATAL,by="cod")
-#----------------------------------------------------------------------------#
-
-
-```
-
-
-```{r  Covid_diabetics2,eval=FALSE}
-##[T2]##.Farmacs.Mètode:Aggregador.
-#dt_plana_covid2
-dt_plana_covid2B<-dt_plana_covid2%>% transmute(idp=PATIENT.ID,cod=as.character(ID_ATC7),dat="20200520") 
-#variable.names(dt_plana_covid2)
-#[1] "PATIENT.ID"                                   "FARMACO.DRUG_NOMBRE_COMERCIAL.COMERCIAL_NAME"
-#[3] "DOSIS_MEDIA_DIARIA.DAILY_AVRG_DOSE"           "INICIO_TRAT.DRUG_START_DATE"                 
-#[5] "FIN_TRAT.DRUG_END_DATE"                       "ATC5_NOMBRE.NAME"                            
-#[7] "ID_ATC5"                                      "ATC7_NOMBRE.NAME"                            
-#[9] "ID_ATC7"                                     
-#----------------------------------------------------------------------------#
-dt_plana_DM_agr2<-agregar_problemes(dplyr::select(dt_plana_covid2B,idp,cod,dat),
-                                    bd.dindex = "20000601",
-                                    dt.agregadors=dplyr::select(dt_cataleg2,cod,agr=agr5),
-                                    finestra.dies=c(-Inf,Inf),prefix = "DM_F.") 
-#----------------------------------------------------------------------------#
-GRUP2<-dt_plana_covid2B%>%inner_join(dt_plana_DM_agr2,by="idp")%>%dplyr::select(idp,cod)
-GRUP2<-GRUP2%>%inner_join(CATAL,by="cod")
-#----------------------------------------------------------------------------#
-```
-
-
-```{r  Covid_diabetics3,eval=FALSE}
-
-#                          DM--> LABORATORI    [dt_plana_covid4_agr] MAX HbA1c>=6.5%      
-
-
-#
-
-
-#dt_plana_DM_agr3                   <-dt_plana_covid4_agr
-#dt_plana_DM_agr3$valor             <-as.double(dt_plana_DM_agr3$valor)
-#dt_plana_DM_agr3<-dt_plana_DM_agr3%>% filter(cod=="HBA1C_" & valor >=6.5 )
-
-
-dt_plana_DM_agr3                   <-dt_plana_covid4_agr_B
-dt_plana_DM_agr3$valor             <-as.double(dt_plana_DM_agr3$valor)
-dt_plana_DM_agr3<-dt_plana_DM_agr3%>% filter(cod=="HBA1C_" & valor >=6.5 )
-GRUP3<-dt_plana_DM_agr3%>%dplyr::select(PATIENT.ID,valor, cod)
-dt_plana_DM_agr3<-dt_plana_DM_agr3%>% transmute(idp=PATIENT.ID,dtindex="20000601", DM.GLI="20200520")
-dt_plana_DM_agr3$idp<-as.numeric(dt_plana_DM_agr3$idp)
-
-
-DIA_INDEX<-dt_01%>%transmute(idp=PATIENT.ID,DIA.INDEX=F_INGRESO.ADMISSION_D_ING.INPAT)
-DIA_INDEX$DIA.INDEX<-as.character(DIA_INDEX$DIA.INDEX)
-#DIA_INDEX
-#----------------------------------------------------------------------------#
-DIA_INDEX$DIA<-substr(DIA_INDEX$DIA.INDEX,1,2)
-DIA_INDEX$MES<-substr(DIA_INDEX$DIA.INDEX,4,5)
-DIA_INDEX$ANY<-substr(DIA_INDEX$DIA.INDEX,7,10)
-#----------------------------------------------------------------------------#
-DIA_INDEX$DIA.INDEX2<-paste0(DIA_INDEX$ANY,DIA_INDEX$MES,DIA_INDEX$DIA)
-#----------------------------------------------------------------------------#
-
-#----------------------------------------------------------------------------#
-DIA_INDEX<-DIA_INDEX%>%dplyr::select(idp,DIA.INDEX2)
-#----------------------------------------------------------------------------#
-
-
-#----------------------------------------------------------------------------#
-DIA_INDEX2<-dt_02
-
-DIA_INDEX2$INICIO_TRAT.DRUG_START_DATE<-as.Date(DIA_INDEX2$INICIO_TRAT.DRUG_START_DATE,"%d/%m/%Y")
-DIA_INDEX2<-DIA_INDEX2%>% transmute(idp=PATIENT.ID,cod=as.character(ID_ATC7),dat=INICIO_TRAT.DRUG_START_DATE) 
-#----------------------------------------------------------------------------#
-DIA_INDEX2$ANY<-substr(DIA_INDEX2$dat,1,4)
-DIA_INDEX2$MES<-substr(DIA_INDEX2$dat,6,7)
-DIA_INDEX2$DIA<-substr(DIA_INDEX2$dat,9,10)
-#----------------------------------------------------------------------------#
-DIA_INDEX2$dat2<-paste0(DIA_INDEX2$ANY,DIA_INDEX2$MES,DIA_INDEX2$DIA)
-DIA_INDEX2<-DIA_INDEX2%>%transmute(idp,cod,dat=dat2)
-#----------------------------------------------------------------------------#
-dt_plana_DM_agr4<-agregar_problemes(dplyr::select(DIA_INDEX2,idp,cod,dat),
-                                    bd.dindex =DIA_INDEX,
-                                    dt.agregadors=dplyr::select(dt_cataleg2,cod,agr=agr6),
-                                    finestra.dies=c(0,1),prefix = "Far.") 
-
-#AQUI FER-HO!
-dt_plana_DM_agr4<-dt_plana_DM_agr4%>%transmute(idp,dtindex,DM.INSU=Far.INSU)
-
-
-#-------------------------------------------------------#
-#dt_plana_DM_agr4
-#-------------------------------------------------------#
-GRUP4<-DIA_INDEX2%>%inner_join(dt_plana_DM_agr4,by="idp")%>%inner_join(CATAL_INSU,by="cod")
-#
-#GRUP1
-#GRUP2
-#GRUP3
-#GRUP4
-#-----------------------------------------------------------------------------------------------------#
-```
-
-
-```{r  Covid_diabetics4,eval=FALSE}
-#-------------------------------------------------------#
-dt_plana_DM_agr5<-dt_plana_covid4_agr3%>%dplyr::select(PATIENT.ID,max_pacient_valor_GLU_)
-GRUP5<-dt_plana_DM_agr5%>% filter(max_pacient_valor_GLU_>=200 )
-dt_plana_DM_agr5<-dt_plana_DM_agr5%>% filter(max_pacient_valor_GLU_>=200 )
-dt_plana_DM_agr5<-dt_plana_DM_agr5%>%transmute(idp=PATIENT.ID,DM.GLU_MAX=max_pacient_valor_GLU_)
-dt_plana_DM_agr5$idp<-as.numeric(dt_plana_DM_agr5$idp)
-#-------------------------------------------------------#
-
-
-
-
-
-
-#-----------------------------------------------------------------------------------------------------#
-C_DIABETICS<-dt_plana_DM_agr1%>%
-  bind_rows(dt_plana_DM_agr2)%>%
-  bind_rows(dt_plana_DM_agr3)%>%
-  bind_rows(dt_plana_DM_agr4)%>%
-  bind_rows(dt_plana_DM_agr5)%>%
-  arrange(idp)%>%
-  group_by(idp)%>% slice(1) %>% ungroup() %>%dplyr::select(idp)
 

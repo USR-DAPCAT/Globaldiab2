@@ -17,7 +17,7 @@ output:
   word_document: default
 
 params:
-  dir_dades_desti: "dades"
+  dir_dades_desti: "dades/mostra"
   ANY: '20201231'
   bd.dindex1: '20201231'
 ---
@@ -37,7 +37,7 @@ params:
 
 ****
 
-## Fase Preparacio
+## Fase Preparacion
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, include=F,size="huge")
@@ -58,7 +58,6 @@ library("compareGroups")
 
 library("FormatGe")
 library("ggflowchart2")
-
 library("Macedonia")
 
 #dt_plana<-Taula_plana
@@ -206,7 +205,7 @@ dt_plana<-mutate_at(dt_plana, vars( starts_with("FF.") ), funs( if_else(.==0  | 
 dt_plana<-mutate_at(dt_plana, vars( starts_with("FP.") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
 
 ```
-## 1b. Recodificacions i calculs [Part demografica: dt_poblacio,dt_tabaquisme]
+## 1b. Recodificaciones y calculos [Parte demografica: dt_poblacio,dt_tabaquisme]
 ```{r recodificacions1 }
 
 
@@ -256,7 +255,7 @@ dt_plana<-dt_plana%>% mutate(situacio2=case_when(situacio=="A"~"1.Activo",
                                               situacio=="T"~"3.Traslado"))
 
 ```
-## 1c. Recodificacions i calculs [Part FARMACS: dt_facturacio,dt_prescripcio]
+## 1c. Recodificaciones y calculos [Parte FARMACOS: dt_facturacio,dt_prescripcio]
 ```{r recodificacions3}
 
 ## FARMACS:: Tractaments##
@@ -292,7 +291,7 @@ dt_plana<-dt_plana%>% mutate(situacio2=case_when(situacio=="A"~"1.Activo",
 
 
 ```
-## 1d. Recodificacions i calculs [Part dt_variables: dt_analitiques,dt_cliniques]
+## 1d. Recodificaciones y calculos [Parte dt_variables: dt_analitiques,dt_cliniques]
 ```{r recodificacions4}
 ###V.Analitiques+V.Cliniques.##
 
@@ -468,103 +467,20 @@ dt_plana<-dt_plana%>%mutate(GLICADA_CAT4=case_when(GLICADA.valor   <6.5~ 1,
 #                                                     COLLDL.valor        >=130  ~ "COLLDL.valor        >=130"))
 
 ```
-## 1e. Recodificacions i calculs [combinacions:Part Diagnostics+Part FARMACS+Part dt_variables]
+## 1e. Recodificaciones y calculos [combinaciones:Part Diagnostics+Part FARMACS+Part dt_variables]
 ```{r recodificacions5}
 ## Combinacions ##
 
 #dt_plana<-dt_plana%>%mutate(DG.HTA2=ifelse(DG.HTA==1  | FF.Hipotensores==1 ,1,0)) 
 
 ```
-## 1f. Recodificacions de zeros i uns nous+dates
-```{r recodificacions6}
 
-dades<-dt_plana
-
-dades<-dades%>% mutate_at(c("dnaix","entrada","sortida" ),ymd)
-
-
-
-#Etquetem (Si/No)  a partir del Conductor!
-dades<- dades%>% mutate_at(vars(starts_with("DG.")), ~if_else(.==1,"Yes","No",missing = "No")) 
-dades<- dades %>% mutate_at(vars(starts_with("EVENT.")), ~if_else(.==1,"Yes","No",missing = "No")) 
-dades<- dades %>% mutate_at(vars(starts_with("FF.")), ~if_else(.==1,"Yes","No",missing = "No")) 
-dades<- dades %>% mutate_at(vars(starts_with("FP.")), ~if_else(.==1,"Yes","No",missing = "No")) 
-
-dades<-dades%>% mutate_at(c("dtindex","dnaix","entrada","sortida" ),ymd)
-
-
-
-```
-
-## 2. Fase Analsis
-```{r analisis2,include=TRUE}
-
-descrTable(dades)
-
-
-conductor<-here::here("conductor.xlsx")
-
-#Etquetem  VALORS! de les VAR  a partir del Conductor!
-dades<-etiquetar_valors(dt=dades,variables_factors=conductor,fulla="etiquetes",camp_etiqueta="etiqueta1")
-
-
-
-#Se excluirán las personas con diabetes gestacional, diabetes secundaria 
-#(p. ej., inducida por fármacos, inducida por sustancias químicas, 
-#insuficiencia pancreática exocrina y defectos genéticos), 
-#diabetes de inicio en la madurez de los jóvenes y formas raras de diabetes.
-
-
-#Apliquem que surtin els MISSINGS a les TAULES , a partir del CONDUCTOR!
-#dades<-dades%>%mutate_at(extreure.variables("missings",conductor,dt=dades),as.factor)
-
-
-#Cat referencia
-#dades<-dades %>% refcat(conductor = conductor,ref="refcat")
-
-#flow_chart1<-criteris_exclusio_diagrama(dt=dades,
-#                                        taulavariables=conductor,
-#                                        criteris = "exc_pre",
-#                                        ordre="exc_ordre",
-#                                        grups=NA,
-#                                        etiquetes="descripcio2",
-#                                        sequencial = T,
-#                                        pob_lab=c("epiTempus DM2  ","epiTempus DM2 without exclusions"),
-#                                        colors=c("white","grey"),
-#                                        forma=c("ellipse","box"))
-
-#flow_chart1
-
-
-
-
-#Apliquem les EXCLUSIONS!
-#dades<-criteris_exclusio(dades,taulavariables=conductor,criteris="exc_pre")
-
-
-#Etquetem  NOMS! de les  VAR  a partir del Conductor!
-#dades<-etiquetar(dades,taulavariables=conductor,camp_descripcio="descripcio1")
-
-
-
-
-#vect<-as.vector(variable.names(dades))
-#write.csv(vect, file="dades.csv")
-
-
-
-formula_Taula00_1<-Macedonia::formula_text("Taula00",y="",taulavariables = conductor,dt=dades)
-descrTable(formula_Taula00_1,data=dades)
-
-
-
-```
 
 ## 4. Salvar tabla plana
 
 ```{r salvar}
 
-#saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana2.rds"))
+saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana2.rds"))
 
 ```
 

@@ -1,0 +1,209 @@
+---
+title: 'Estudi GLBALDIAB . Fecha de corte:  `r params$bd.dindex1`'
+author: "Jordi Real & Rai Puig"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    css: logos_css/usr_styles.css
+    fig_caption: yes
+    toc: yes
+    toc_float: yes
+  pdf_document: default
+  word_document:
+    toc: yes
+params:
+   dir_dades_desti: "dades/mostra"  # "dades/poblacio
+   ANY: '2019'
+   website: https://github.com/USR-DAPCAT/
+---
+&nbsp;
+<script>
+   $(document).ready(function() {
+     $head = $('#header');
+     $head.prepend('<img src=\"https://www.idiapjgol.org/images/logo.png\" style=\"float: right ;width: 130px;\"/>')
+     $head.prepend('<img src=\"https://avatars2.githubusercontent.com/u/57066591?s=200&v=4\" style=\"margin-left:25% ;width: 80px;\"/>')
+     $head.prepend('<img src=\"logos_css/logoDAP_Cat.png\" style=\"float: left:1;width: 185px;\"/>')
+   });
+</script>
+
+
+<div class="watermark">DRAFT</div>
+
+****
+
+## 0. Estat:
+
+**Lecturas,Tabla Plana, agregaciones y parte global descriptiva**
+
+
+&check; 1.	La diabetes se determinara y definira sobre la base de un diagnostico o código de diagnostico proporcionado por un profesional sanitario pertinente.<br/>
+&check; 2. O tendra que cumplir estos dos suopistos : <br/>
+&check; 2a.La presencia de dos o mas valores de glucosa en sangre o HbA1c≥6,5 % (48 mmol/mol)), en un período de 6 meses.<br/>
+&check; 2b.Prescripción de medicamentos para bajar la glucosa durante al menos 3 meses <br/>
+        Se excluiran : <br/>
+&check; i.  las personas con diabetes gestacional <br/>
+&check; ii. diabetes secundaria <br/>
+&check; iii.diabetes de inicio en la madurez de los jóvenes y formas raras de diabetes <br/>
+
+
+
+Desembre / 2022
+
+&check; 1.	La diabetes se determinara y definira sobre la base de un diagnostico o código de diagnostico proporcionado por un profesional sanitario pertinente.<br/>
+&check; 2. O tendra que cumplir estos dos suopistos : <br/>
+&check; 2a.La presencia de dos o mas valores de glucosa en sangre o HbA1c≥6,5 % (48 mmol/mol)), en un período de 6 meses.<br/>
+&check; 2b.Prescripción de medicamentos para bajar la glucosa durante al menos 3 meses <br/>
+
+
+
+ 
+**Pendents**
+
+&check; Revision , depuracion de  errores y exclusiones   <br/>
+
+# Fase de validacio de base
+
+## Fase Preparacio
+
+
+```{r setup, include = FALSE}
+
+c()
+# libreries i funcions
+#rm(list=ls())
+
+#devtools::install_github("USR-DAPCAT/Platan")
+#devtools::install_github("USR-DAPCAT/FormatGe")
+#devtools::install_github("USR-DAPCAT/Macedonia")
+#devtools::install_github("USR-DAPCAT/ggflowchart2")
+
+library("dplyr")
+library("lubridate")
+library("compareGroups")
+
+
+library("FormatGe")
+library("ggflowchart2")
+library("Macedonia")
+
+#dt_plana<-Taula_plana
+
+#########################################################################################
+#
+# Descarregar funcions github - com ho feiem abans.
+#link_source<-paste0("https://github.com/jrealgatius/Stat_codis/blob/master/funcions_propies.R","?raw=T")
+#devtools::source_url(link_source)
+#
+# Llegir plana
+
+conductor<-here::here("conductor.xlsx")
+
+#
+```
+
+
+```{r llegir, include = FALSE}
+
+#######################################################
+# Llegir plana
+dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana2.rds")) %>% as_tibble()
+
+
+
+
+
+```
+## 1f. Recodificacions de zeros i uns nous+dates
+```{r recodificacions6}
+
+#dades<-dt_plana
+
+dades<-dades%>% mutate_at(c("dnaix","entrada","sortida" ),ymd)
+
+
+
+#Etquetem (Si/No)  a partir del Conductor!
+dades<- dades%>% mutate_at(vars(starts_with("DG.")), ~if_else(.==1,"Yes","No",missing = "No")) 
+dades<- dades %>% mutate_at(vars(starts_with("EVENT.")), ~if_else(.==1,"Yes","No",missing = "No")) 
+dades<- dades %>% mutate_at(vars(starts_with("FF.")), ~if_else(.==1,"Yes","No",missing = "No")) 
+dades<- dades %>% mutate_at(vars(starts_with("FP.")), ~if_else(.==1,"Yes","No",missing = "No")) 
+
+dades<-dades%>% mutate_at(c("dtindex","dnaix","entrada","sortida" ),ymd)
+
+
+
+```
+
+## 2. Fase Analsis
+```{r analisis2,include=TRUE}
+
+descrTable(dades)
+
+
+
+
+#Etquetem  VALORS! de les VAR  a partir del Conductor!
+dades<-etiquetar_valors(dt=dades,variables_factors=conductor,fulla="etiquetes",camp_etiqueta="etiqueta1")
+
+
+
+#Se excluirán las personas con diabetes gestacional, diabetes secundaria 
+#(p. ej., inducida por fármacos, inducida por sustancias químicas, 
+#insuficiencia pancreática exocrina y defectos genéticos), 
+#diabetes de inicio en la madurez de los jóvenes y formas raras de diabetes.
+
+
+#Apliquem que surtin els MISSINGS a les TAULES , a partir del CONDUCTOR!
+#dades<-dades%>%mutate_at(extreure.variables("missings",conductor,dt=dades),as.factor)
+
+
+#Cat referencia
+#dades<-dades %>% refcat(conductor = conductor,ref="refcat")
+
+#flow_chart1<-criteris_exclusio_diagrama(dt=dades,
+#                                        taulavariables=conductor,
+#                                        criteris = "exc_pre",
+#                                        ordre="exc_ordre",
+#                                        grups=NA,
+#                                        etiquetes="descripcio2",
+#                                        sequencial = T,
+#                                        pob_lab=c("epiTempus DM2  ","epiTempus DM2 without exclusions"),
+#                                        colors=c("white","grey"),
+#                                        forma=c("ellipse","box"))
+
+#flow_chart1
+
+
+
+
+#Apliquem les EXCLUSIONS!
+#dades<-criteris_exclusio(dades,taulavariables=conductor,criteris="exc_pre")
+
+
+#Etquetem  NOMS! de les  VAR  a partir del Conductor!
+#dades<-etiquetar(dades,taulavariables=conductor,camp_descripcio="descripcio1")
+
+
+
+
+#vect<-as.vector(variable.names(dades))
+#write.csv(vect, file="dades.csv")
+
+
+
+formula_Taula00_1<-Macedonia::formula_text("Taula00",y="",taulavariables = conductor,dt=dades)
+descrTable(formula_Taula00_1,data=dades)
+
+
+
+```
+
+```
+&nbsp;
+<hr />
+<p style="text-align: center;">A work by $Jordi Real$ $Rai Puig$ </a></p>
+<p style="text-align: center;">$Llepali System$ </a></p>
+<p style="text-align: center;"><span style="color: #808080;"><em><https://github.com/USR-DAPCAT/></em></span></p>
+
+
+
