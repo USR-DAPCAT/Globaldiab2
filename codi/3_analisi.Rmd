@@ -1,5 +1,5 @@
 ---
-title: 'Estudi GLBALDIAB . Fecha de corte:  `r params$bd.dindex1`'
+title: 'Tasas y tendencias mundiales y específicas de cada país en la incidencia de la diabetes tipo 2 de inicio en la juventud'
 author: "Jordi Real & Rai Puig"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
@@ -37,7 +37,7 @@ params:
 
 
 &check; 1.	La diabetes se determinara y definira sobre la base de un diagnostico o código de diagnostico proporcionado por un profesional sanitario pertinente.<br/>
-&check; 2. O tendra que cumplir estos dos suopistos : <br/>
+        O tendra que cumplir estos dos suopistos : <br/>
 &check; 2a.La presencia de dos o mas valores de glucosa en sangre o HbA1c≥6,5 % (48 mmol/mol)), en un período de 6 meses.<br/>
 &check; 2b.Prescripción de medicamentos para bajar la glucosa durante al menos 3 meses <br/>
         Se excluiran : <br/>
@@ -50,14 +50,14 @@ params:
 Desembre / 2022
 
 &check; 1.	La diabetes se determinara y definira sobre la base de un diagnostico o código de diagnostico proporcionado por un profesional sanitario pertinente.<br/>
-&check; 2. O tendra que cumplir estos dos suopistos : <br/>
+        O tendra que cumplir estos dos suopistos : <br/>
 &check; 2a.La presencia de dos o mas valores de glucosa en sangre o HbA1c≥6,5 % (48 mmol/mol)), en un período de 6 meses.<br/>
 &check; 2b.Prescripción de medicamentos para bajar la glucosa durante al menos 3 meses <br/>
 
 
 
  
-**Pendents**
+**Pendientes**
 
 &check; Revision , depuracion de  errores y exclusiones   <br/>
 
@@ -67,6 +67,7 @@ Desembre / 2022
 
 
 ```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, include=F,size="huge")
 
 c()
 # libreries i funcions
