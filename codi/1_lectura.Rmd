@@ -223,9 +223,9 @@ gc()
 #2 o més HbA1c >=6.5 dins d’un periode de 6 mesos: 
 #-	2 o més >=6.5 
 #-	Temps entre la primera I la última <=6 mesos  (Data 1a I data ultima)
-
-
-
+#
+#
+#.
 
 
 
@@ -258,6 +258,8 @@ dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
 #1.	Temps acumulat de prescripció > 3mesos  
 #2.	3 envasos de facturació 
 
+
+
 # Codis de inclusió 
 dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>% 
   select(domini,cod,agr) %>% 
@@ -286,6 +288,8 @@ temp_facturacions<-dt_facturacions%>%
     semi_join(dt_index2a,by="idp")  
 
 
+# dels escollits , observes aquells que 3 envasos de facturació  ! #
+
 temp_facturacions2<- 
   temp_facturacions %>% agregar_facturacio(finestra.dies = c(-Inf,+Inf),
                                      dt.agregadors=select(dt_cataleg2,cod,agr=agr),
@@ -308,11 +312,6 @@ dt_index2a<-dt_index2a%>%
 
 
 
-
-
-
-
-
 dt_index2b<-agregar_problemes(dt=dt_prescripcions,
                                            bd.dindex=20220101,
                                            finestra.dies=c(-Inf,+Inf),
@@ -326,6 +325,14 @@ dt_index2b<-agregar_problemes(dt=dt_prescripcions,
 
 temp_prescripcions<-dt_prescripcions%>% 
     semi_join(dt_index2b,by="idp")  
+
+
+
+
+
+
+# mirarem , aquells que Temps acumulat de prescripció > 3mesos  #
+
 
 #Agregacio Farmacs Prescripcions.: temps acumulat de prescripció > 3mesos  
 temp_prescripcions2<-agregar_prescripcions(dt=temp_prescripcions,
@@ -357,9 +364,6 @@ dt_index2b<-dt_index2b%>%
 #-	Temps entre la primera I la última <=6 mesos  (Data 1a I data ultima)
 
     
-mtcars %>%
-  group_by(cyl) %>%
-  summarise(disp = mean(disp), sd = sd(disp))    
     
 #iii) Busco la data minima  d'una GLICADA >=6.5, de cada pacient.
 dt_index3<- 
@@ -389,11 +393,30 @@ dt_index3<-dt_index3%>% filter(rest<=183 & rest>0 )%>%
 #iv) Un cop tinc les tres Dates minimes,escolleixo la MÍNIMA.
 
 # Fusió de tot 
+
+dt_index01<-dt_index1
+
+dt_index02<-dt_index2a %>% bind_rows(dt_index2b) %>% bind_rows(dt_index3) %>% 
+  group_by(idp) %>%  slice(which.min(dtindex)) %>% ungroup()
+
 dt_index<-
-  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) %>% bind_rows(dt_index3) %>% 
-  group_by(idp) %>%  slice(which.min(dtindex)) %>% ungroup() 
+  dt_index01 %>% bind_rows(dt_index01)%>% 
+  group_by(idp)%>%  
+    slice(which.min(dtindex))%>% 
+      ungroup() 
 
 
+
+
+
+#dt_index<-
+#  dt_index1 %>% bind_rows(dt_index2a) %>% bind_rows(dt_index2b) %>% bind_rows(dt_index3) %>% 
+#  group_by(idp) %>%  slice(which.min(dtindex)) %>% ungroup() 
+
+
+
+
+#filtrem per l any que volem estiduidiar 
 
 dt_temp<-dt_index%>%
   left_join(dt_poblacio,by="idp") %>% 
@@ -492,8 +515,11 @@ prescripcions_agr <- dt %>% dplyr::select(idp, dtindex, cod,
 
 
 
+    ```
+    
 
 ## 3. Lectura posterior a DataIndex 
+    
 ```{r lectura2, include=T}
 
 # 3 Lectura posterior a DataIndex -----------
@@ -547,7 +573,7 @@ variable.names(dtagr_diagnostics)
 
 
 #Agregacio Farmacs Facturats.
-dtagr_facturacio<-agregar_facturacio(dt=dt_facturacio,
+dtagr_facturacions<-agregar_facturacio(dt=dt_facturacions,
                                      bd.dindex=dt_index,
                                      finestra.dies=c(-Inf,-1),
                                      dt.agregadors=dt_cataleg,
@@ -557,7 +583,7 @@ dtagr_facturacio<-agregar_facturacio(dt=dt_facturacio,
                                      cataleg_mana=FALSE,
                                      acumular=NULL)
 
-variable.names(dtagr_facturacio)
+variable.names(dtagr_facturacions)
 
 
 #Agregacio Farmacs Prescripcions.
@@ -570,8 +596,8 @@ dtagr_prescripcions<-agregar_prescripcions(dt=dt_prescripcions,
                                            agregar_data=TRUE,
                                            cataleg_mana =FALSE,
                                            acumular=NULL)
-variable.names(dtagr_prescripcions)
-table(dtagr_prescripcions$FP.ANTIDIAB)
+#variable.names(dtagr_prescripcions)
+#table(dtagr_prescripcions$FP.ANTIDIAB)
 
 #Agregacio Analitiques i Cliniques.
 dtagr_variables<-agregar_analitiques(dt=dt_variables,
@@ -582,7 +608,7 @@ dtagr_variables<-agregar_analitiques(dt=dt_variables,
 
 dtagr_diagnostics<-dtagr_diagnostics%>%select(-dtindex)
 dtagr_prescripcions<-dtagr_prescripcions%>%select(-dtindex)
-dtagr_facturacio<-dtagr_facturacio%>%select(-dtindex)
+dtagr_facturacions<-dtagr_facturacions%>%select(-dtindex)
 dtagr_variables<-dtagr_variables%>%select(-dtindex)
 
 #
@@ -615,7 +641,7 @@ Fusionar part dels arxius agregats
 dt_plana1<-dt_index%>%
 left_join(dt_poblacio,by="idp")%>%
   left_join(dtagr_diagnostics,by="idp")%>%
-    left_join(dtagr_facturacio,by="idp")%>%
+    left_join(dtagr_facturacions,by="idp")%>%
      left_join(dtagr_prescripcions,by="idp")%>%
       left_join(dtagr_variables,by="idp")
        
@@ -631,7 +657,7 @@ left_join(dt_poblacio,by="idp")%>%
 
 #i)
 fitxer=c("dt_diagnostics",
-         "dt_facturacio",
+         "dt_facturacions",
          "dt_prescripcions",
          "dt_variables")
 
