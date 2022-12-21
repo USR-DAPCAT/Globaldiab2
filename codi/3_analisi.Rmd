@@ -13,7 +13,7 @@ output:
     toc: yes
 params:
    dir_dades_desti: "dades/mostra"  # "dades/poblacio
-   ANY: '2019'
+   ANY: '20181231'
    website: https://github.com/USR-DAPCAT/
 ---
 &nbsp;
@@ -194,6 +194,18 @@ dades<-etiquetar_valors(dt=dades,variables_factors=conductor,fulla="etiquetes",c
 
 formula_Taula00_1<-Macedonia::formula_text("Taula00",y="",taulavariables = conductor,dt=dades)
 descrTable(formula_Taula00_1,data=dades)
+
+
+
+descrTable(formula_Taula00_1, 
+           dades,
+           method = 2,
+           Q1=0,
+           Q3=1,
+           extra.labels = c("","","")) %>% export2md(header.background = "grey", 
+                                                               header.color = "white", 
+                                                               size=12,caption = 
+                                                              "Table1.Tasas y tendencias mundiales y específicas de cada país en la incidencia de la diabetes tipo 2 de inicio en la juventud.[%,median,min,max]")
 
 
 

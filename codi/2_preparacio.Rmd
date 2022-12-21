@@ -18,8 +18,8 @@ output:
 
 params:
   dir_dades_desti: "dades/mostra"
-  ANY: '20201231'
-  bd.dindex1: '20201231'
+  ANY: '20181231'
+  bd.dindex1: '20181231'
 ---
 
 &nbsp;

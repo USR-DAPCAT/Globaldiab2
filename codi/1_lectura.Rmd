@@ -19,8 +19,8 @@ output:
 params:
   dir_dades_origen: "../../DADES/GLOBALDIAB2/mostra" # "../../DADES/GLOBALDIAL2/mostra"
   dir_dades_desti: "dades/mostra" 
-  bd.dindex1: '20190101'
-  bd.dindex2: '20190101'
+  bd.dindex1: '20181231'
+  bd.dindex2: '20181231'
 ---
 
 
