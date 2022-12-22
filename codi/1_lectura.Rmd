@@ -157,34 +157,17 @@ dt_temp<-dt_poblacio
 
 # dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", sortida, 20201231))
 # dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="D", sortida, 20220630))
-
-dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", 20220630,sortida))
-
+# dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", 20220630,sortida))
 
 N_actiu_01Gener<-function(dt=dt_temp,any="2010") {
   # dt=dt_temp
   # any="2010"
   dt %>% summarise(N=sum(sortida>=paste0(any,"0101") & entrada<=paste0(any,"0101")))}
 
-
 TaulaNs<-
   c(2000:2019) %>% purrr::set_names(c(2000:2019)) %>% 
   purrr::map_df(~ 
-               N_actiu_01Gener(dt=dt_temp2, any=.x),.id="Year")
-
-
-taulaNs %>% kable() %>% kableExtra::kable_classic_2()
-
-c(2000:2019) %>% purrr::set_names(c(2000:2019)) %>% 
-  purrr::map_df(~ 
                N_actiu_01Gener(dt=dt_temp, any=.x),.id="Year")
-
-
-c(2000:2019) %>% purrr::set_names(c(2000:2019)) %>% 
-  purrr::map_df(~ 
-               N_actiu_01Gener(dt=dt_temp2, any=.x),.id="Year")
-
-
 
 taulaNs %>% kable() %>% kableExtra::kable_classic_2()
 
@@ -195,7 +178,7 @@ taulaNs %>% kable() %>% kableExtra::kable_classic_2()
 
 
 ##2. Generar DataIndex Diseno Transversal
-```{r generem la data_Index1, include=F}
+```{r generem la data_Index1, include=F, eval=FALSE}
 
 # 2 Data.Index -----------
 
@@ -244,6 +227,7 @@ dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>%
   select(domini,cod,agr) %>% 
   filter(agr=="DM2")
 
+dt_diagnostics %>% semi_join(dt_cataleg2,by="cod") %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% select(idp,dtindex=dat)
 
 #i) Busco la data minima del primer diagnostic de Dm2, de cada pacient.
 dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
@@ -295,7 +279,7 @@ temp_facturacions2<-
                                      dt.agregadors=select(dt_cataleg2,cod,agr=agr),
                                      prefix = "FF.",
                                      camp_agregador="agr",
-                                     agregar_data=FALSE, acumular = T)%>%filter(FF.ANTIDIAB>3)
+                                     agregar_data=FALSE, acumular = "env")%>%filter(FF.ANTIDIAB>90)
 
 
 
