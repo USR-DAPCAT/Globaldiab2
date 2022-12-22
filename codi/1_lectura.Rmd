@@ -155,31 +155,39 @@ dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entrega
 
 dt_temp<-dt_poblacio
 
-dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", sortida, 20201231))
+# dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", sortida, 20201231))
+# dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="D", sortida, 20220630))
+
+dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", 20220630,sortida))
 
 
-taulaNs<-dt_temp2 %>% summarise(N2000=sum(sortida>=20000101 & entrada<=20000101),
-                                N2001=sum(sortida>=20010101 & entrada<=20010101),
-                                N2002=sum(sortida>=20020101 & entrada<=20020101),
-                                N2003=sum(sortida>=20030101 & entrada<=20030101),
-                                N2004=sum(sortida>=20040101 & entrada<=20040101),
-                                N2005=sum(sortida>=20050101 & entrada<=20050101),
-                                N2006=sum(sortida>=20060101 & entrada<=20060101),
-                                N2007=sum(sortida>=20070101 & entrada<=20070101),
-                                N2008=sum(sortida>=20080101 & entrada<=20080101),
-                                N2009=sum(sortida>=20090101 & entrada<=20090101),
-                                N2010=sum(sortida>=20100101 & entrada<=20100101),
-                                N2011=sum(sortida>=20110101 & entrada<=20110101),
-                                N2012=sum(sortida>=20120101 & entrada<=20120101),
-                                N2013=sum(sortida>=20130101 & entrada<=20130101),
-                                N2014=sum(sortida>=20140101 & entrada<=20140101),
-                                N2015=sum(sortida>=20150101 & entrada<=20150101),
-                                N2016=sum(sortida>=20160101 & entrada<=20160101),
-                                N2017=sum(sortida>=20170101 & entrada<=20170101),
-                                N2018=sum(sortida>=20180101 & entrada<=20180101),
-                                N2019=sum(sortida>=20190101 & entrada<=20190101))
+N_actiu_01Gener<-function(dt=dt_temp,any="2010") {
+  # dt=dt_temp
+  # any="2010"
+  dt %>% summarise(N=sum(sortida>=paste0(any,"0101") & entrada<=paste0(any,"0101")))}
+
+
+TaulaNs<-
+  c(2000:2019) %>% purrr::set_names(c(2000:2019)) %>% 
+  purrr::map_df(~ 
+               N_actiu_01Gener(dt=dt_temp2, any=.x),.id="Year")
+
 
 taulaNs %>% kable() %>% kableExtra::kable_classic_2()
+
+c(2000:2019) %>% purrr::set_names(c(2000:2019)) %>% 
+  purrr::map_df(~ 
+               N_actiu_01Gener(dt=dt_temp, any=.x),.id="Year")
+
+
+c(2000:2019) %>% purrr::set_names(c(2000:2019)) %>% 
+  purrr::map_df(~ 
+               N_actiu_01Gener(dt=dt_temp2, any=.x),.id="Year")
+
+
+
+taulaNs %>% kable() %>% kableExtra::kable_classic_2()
+
 
 #write.csv2(taulaNs,"taulaNs.csv")
 
@@ -206,8 +214,6 @@ gc()
 ```
 ## 2. Generar DataIndex DM2-Debut
 ```{r generacio_dtindex2, include=F}
-
-
 ##Nota SIDIAP:
 # - Condició c) no disponible
 
@@ -247,13 +253,12 @@ dt_index1<-agregar_problemes(select(dt_diagnostics,idp,cod,dat),
                                                 select(idp,dtindex=Diag_DM2) 
 
 #dt_index1%>%filter(idp=="00d79410ce05217612c77d1b38b85970a7622a56")
+```
 
 
 
 
-
-
-
+```{r generacio_dtindex3, include=F}
 # - Condició b) Prescripció de com a mínim 3 mesos glucose-lowering medication una vegada definit l’agregador
 #1.	Temps acumulat de prescripció > 3mesos  
 #2.	3 envasos de facturació 
@@ -267,10 +272,7 @@ dt_cataleg2<-readxl::read_excel(conductor_codis,col_types = "text") %>%
 
 #ii) Busco la data minima del primer diagnostic de Farmac facturat de Dm2, de cada pacient.
 
-
 dt_facturacions2<-dt_facturacions%>%mutate(dbaixa=20223112,dat=(paste0(as.character(dat), "15")))
-
-
 
 dt_index2a<-agregar_problemes(dt=dt_facturacions2,
                                            bd.dindex=20220101,
@@ -283,10 +285,8 @@ dt_index2a<-agregar_problemes(dt=dt_facturacions2,
 
 dt_index2a<-dt_index2a%>%mutate(dtindex=as.integer(dtindex))
 
-
 temp_facturacions<-dt_facturacions%>% 
     semi_join(dt_index2a,by="idp")  
-
 
 # dels escollits , observes aquells que 3 envasos de facturació  ! #
 
@@ -295,11 +295,14 @@ temp_facturacions2<-
                                      dt.agregadors=select(dt_cataleg2,cod,agr=agr),
                                      prefix = "FF.",
                                      camp_agregador="agr",
-                                     agregar_data=FALSE)%>%filter(FF.ANTIDIAB>3)
+                                     agregar_data=FALSE, acumular = T)%>%filter(FF.ANTIDIAB>3)
 
 
 
+```
 
+
+```{r generacio_dtindex4, include=F}
 dt_index2a<-dt_index2a%>% 
     semi_join(temp_facturacions2,by="idp")  
 
