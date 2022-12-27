@@ -210,6 +210,53 @@ descrTable(formula_Taula00_1,
 
 
 ```
+# 3.Supplementary.Event rates for different study events  
+
+```{r,include=T, eval=FALSE}
+
+dt_temp<-dades
+dt_temp<-dt_temp%>%mutate(EVENT.MORT=ifelse(situacio=="2.   Difunto",sortida2,NA)) 
+
+# Event MACE 
+#dt_temp<-dt_temp %>% mutate(EVENT.MACE=pmin(EVENT.CARDIO,EVENT.MORT,na.rm=T))
+
+events_vars2<-c("EVENT.MORT")
+
+
+output_resum_event<-function(event = "EVENT.DFD") {
+  
+  # event = "EVENT.DFD"
+  
+  dt_kk<-
+    dt_temp %>% select(event:=sym(event),dtindex,sortida) %>% 
+    mutate(event_data=ymd(event)) %>% 
+    mutate(event=if_else(event_data>0,1,0,missing = 0)) %>% 
+    mutate(dies_event=ifelse(event,event_data-dtindex,sortida-dtindex)) %>% 
+    mutate(anys_event= dies_event/365.25)  
+  
+    
+    dt_kk %>% summarise(Patients = dplyr::n(), 
+                        P_Years = sum(anys_event),
+                        N=sum(event),
+                        'event_rate(DI) per 10,000'=(N/P_Years)*10000,
+                        'IA(%)'=(N/Patients)*100
+            )
+    }
+
+
+
+# Generic2 
+events_vars2%>% 
+  purrr::set_names(events_vars2) %>% 
+  purrr::map_df(~output_resum_event(.x),.id="Event") %>% 
+  etiquetar_taula("Event",taulavariables = conductor,camp_descripcio = "descripcio2") %>% 
+  kableExtra::kable(caption="Supplementary Table 1. Event rates for different study events", digits=2) %>% 
+  kableExtra::kable_classic_2()
+
+
+
+
+```
 
 ```
 &nbsp;
