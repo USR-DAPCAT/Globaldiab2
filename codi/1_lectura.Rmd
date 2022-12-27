@@ -67,7 +67,7 @@ dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod
 #ii)      Formatge(formatejar dades.DapCat)
 #iii)     Macedonia(altres funcions.DapCat )
 #
-library("devtools")
+# library("devtools")
 library("dplyr")
 library("kableExtra")
 library("Platan")
@@ -184,6 +184,7 @@ gc()
 
 # 1. Data index DM2 segons codi diagnostic #
 dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% filter(agr=="DM2")
+
 dt_index1<-dt_diagnostics %>% semi_join(dt_codis,by="cod") %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex=as.character(dat))
 
 
@@ -231,14 +232,61 @@ dt_index4<-dt_diagnostics %>%
 #dt_index1 (DM2)
 
 ### Dos criteris entre els 2 seguents
-dt_temp<-dt_index2 %>% full_join(dt_index3) %>% full_join(dt_index4) %>% mutate(COUNT_HB2=dtindex_HB,COUNT_FX=dtindex_FX,COUNT_comp=dtindex_comp)
+dt_temp<-dt_index2 %>% 
+  full_join(dt_index3,by = "idp") %>% full_join(dt_index4,by = "idp") %>%
+  mutate(COUNT_HB2=dtindex_HB,COUNT_FX=dtindex_FX,COUNT_comp=dtindex_comp)
+
 dt_temp<-mutate_at(dt_temp, vars( starts_with("COUNT_") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
-dt_temp<-dt_temp%>%mutate(COUNT=COUNT_HB2+COUNT_FX+COUNT_comp)%>%filter(COUNT>=2) %>% mutate(data_min=pmin(dtindex_HB,dtindex_FX,na.rm = T)) %>% 
+
+dt_temp<-dt_temp%>%mutate(COUNT=COUNT_HB2+COUNT_FX+COUNT_comp)%>%filter(COUNT>=2) %>% 
+  mutate(data_min=pmin(dtindex_HB,dtindex_FX,na.rm = T)) %>% 
   select(idp,dtindex =data_min)
 
 # Fusió de dos criteris
 dt_index_global<-dt_index1 %>% bind_rows(dt_temp) %>% group_by(idp) %>% slice(which.min(dtindex))
 dt_index<-dt_index_global
+
+
+
+#fet per mi!!!
+
+#filtrem per l any que volem estiduidiar 
+
+dt_temp<-dt_index%>%
+  left_join(dt_poblacio,by="idp") %>% 
+    mutate(sortida=ifelse(situacio=="T", sortida, 20201231))%>%
+     filter(sortida>=params$bd.dindex1 & entrada<=params$bd.dindex1)
+  
+# filtrar per any!!, i o reonvertim dt_index.
+
+dt_temp<-dt_temp %>%select(idp,dtindex)
+dt_index<-dt_temp
+
+#dt_temp
+
+
+
+```
+
+
+```{r algoritmeDM2, eval=FALSE}
+
+
+### Algoritme que identifica DM2 en funció de diagnostics, farmacsAD i Glicada>=6.5
+
+## Entren Problemes de salut + cataleg de Llistat de codis CIM DM2, 
+## 2 fitxers farmacs prescrits/facturats  + cataleg de llistat de codis ATC
+## 1 fitxer historic de glicades (Glicada)
+
+# Sortida --> identificador, data
+
+Generar_DM2<-function(dt_diagnostics, dt_glicades,dt_facturacio,dt_prescripcions, dt_cataleg) {
+  
+  
+  
+  }
+
+
 
 ```
 
@@ -552,7 +600,7 @@ prescripcions_agr <- dt %>% dplyr::select(idp, dtindex, cod,
 
 ## 3. Lectura posterior a DataIndex 
     
-```{r lectura2, include=T}
+```{r lectura2, include=T, eval=FALSE}
 
 # 3 Lectura posterior a DataIndex -----------
 
@@ -576,7 +624,7 @@ dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable
 
 ```
 ## 4. Agregacion de nuestros ficheros a partir del catalago
-```{r agregacio, include=T}
+```{r agregacio, include=T, eval=TRUE}
 
 # 4 Agregacio dels nostres fitxers a partir del cataleg -----------
 
@@ -594,54 +642,50 @@ dt_tabaquisme<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable
 
 
 
-#Agregacio Problemes de Salut.
-dtagr_diagnostics<-agregar_problemes(dplyr::select(dt_diagnostics,idp,cod,dat),
-                                     bd.dindex = dt_index,
-                                     dt.agregadors=dt_cataleg,
-                                     finestra.dies=c(-Inf,-1),prefix = "DG.",
-                                     cataleg_mana=FALSE)
-
-variable.names(dtagr_diagnostics)
 
 
-#Agregacio Farmacs Facturats.
-dtagr_facturacions<-agregar_facturacio(dt=dt_facturacions,
-                                     bd.dindex=dt_index,
-                                     finestra.dies=c(-Inf,-1),
-                                     dt.agregadors=dt_cataleg,
-                                     prefix="FF.",
-                                     camp_agregador="agr",
-                                     agregar_data=TRUE,
-                                     cataleg_mana=FALSE,
-                                     acumular=NULL)
-
-variable.names(dtagr_facturacions)
 
 
-#Agregacio Farmacs Prescripcions.
-dtagr_prescripcions<-agregar_prescripcions(dt=dt_prescripcions,
-                                           bd.dindex=dt_index,
-                                           finestra.dies=c(-Inf,-1),
-                                           dt.agregadors=dt_cataleg,
-                                           prefix="FP.",
-                                           camp_agregador="agr",
-                                           agregar_data=TRUE,
-                                           cataleg_mana =FALSE,
-                                           acumular=NULL)
-#variable.names(dtagr_prescripcions)
-#table(dtagr_prescripcions$FP.ANTIDIAB)
 
-#Agregacio Analitiques i Cliniques.
-dtagr_variables<-agregar_analitiques(dt=dt_variables,
-                                     bd.dindex=dt_index,
-                                     finestra.dies = c(-Inf,-1))
+# #Agregacio Farmacs Facturats.
+# dtagr_facturacions<-agregar_facturacio(dt=dt_facturacions,
+#                                      bd.dindex=dt_index,
+#                                      finestra.dies=c(-Inf,-1),
+#                                      dt.agregadors=dt_cataleg,
+#                                      prefix="FF.",
+#                                      camp_agregador="agr",
+#                                      agregar_data=TRUE,
+#                                      cataleg_mana=FALSE,
+#                                      acumular=NULL)
+# 
+# variable.names(dtagr_facturacions)
+# 
+# 
+# #Agregacio Farmacs Prescripcions.
+# dtagr_prescripcions<-agregar_prescripcions(dt=dt_prescripcions,
+#                                            bd.dindex=dt_index,
+#                                            finestra.dies=c(-Inf,-1),
+#                                            dt.agregadors=dt_cataleg,
+#                                            prefix="FP.",
+#                                            camp_agregador="agr",
+#                                            agregar_data=TRUE,
+#                                            cataleg_mana =FALSE,
+#                                            acumular=NULL)
+# #variable.names(dtagr_prescripcions)
+# #table(dtagr_prescripcions$FP.ANTIDIAB)
+# 
+# #Agregacio Analitiques i Cliniques.
+# dtagr_variables<-agregar_analitiques(dt=dt_variables,
+#                                      bd.dindex=dt_index,
+#                                      finestra.dies = c(-Inf,-1))
+# 
+# #traiem la data Index, per la posterior unificacio.
 
-#traiem la data Index, per la posterior unificacio.
 
-dtagr_diagnostics<-dtagr_diagnostics%>%select(-dtindex)
-dtagr_prescripcions<-dtagr_prescripcions%>%select(-dtindex)
-dtagr_facturacions<-dtagr_facturacions%>%select(-dtindex)
-dtagr_variables<-dtagr_variables%>%select(-dtindex)
+
+# dtagr_prescripcions<-dtagr_prescripcions%>%select(-dtindex)
+# dtagr_facturacions<-dtagr_facturacions%>%select(-dtindex)
+# dtagr_variables<-dtagr_variables%>%select(-dtindex)
 
 #
 #
@@ -658,7 +702,21 @@ dtagr_variables<-dtagr_variables%>%select(-dtindex)
 #
 ##############################################################################################
 
+# 
 
+codis_altresDM<-dt_cataleg %>% filter(domini=="diagnostics") %>% 
+  filter(agr=="DM1" | agr=="DMG") 
+
+
+#Agregacio Problemes de Salut.
+dtagr_diagnostics<-agregar_problemes(dplyr::select(dt_diagnostics,idp,cod,dat),
+                                     bd.dindex = dt_index,
+                                     dt.agregadors=codis_altresDM,
+                                     finestra.dies=c(-Inf,0),prefix = "DG.",
+                                     cataleg_mana=FALSE)
+
+
+dtagr_diagnostics<-dtagr_diagnostics%>%select(-dtindex)
 
 ```
 
@@ -670,20 +728,32 @@ Fusionar part dels arxius agregats
 ```{r fusio1}
 
 
-dt_plana1<-dt_index%>%
-left_join(dt_poblacio,by="idp")%>%
-  left_join(dtagr_diagnostics,by="idp")%>%
-    left_join(dtagr_facturacions,by="idp")%>%
-     left_join(dtagr_prescripcions,by="idp")%>%
-      left_join(dtagr_variables,by="idp")
+#dt_plana<-dt_poblacio_ESP %>% 
+#  left_join(dt_index, by="idp") %>%
+#  left_join(dtagr_diagnostics,by="idp")
        
+dt_plana<-dt_index%>%
+  left_join(dt_poblacio_ESP, by="idp") %>%
+  left_join(dtagr_diagnostics,by="idp")
+
   
 #left_join(dt_poblacio_ESP,by="idp")%>%
 
 
 ```
+
+
+## 5. Salvar  
+```{r SALVAR}
+
+saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana.rds"))
+
+
+
+```
+
 ## 6. Generacion GranFuncio: Agregacion+Fusion y convertir a Tabla Plana
-```{r GranFuncio,include=T}
+```{r GranFuncio,include=T, eval=FALSE}
 
 #Parametres:
 
@@ -730,9 +800,5 @@ dt_plana2<-KK%>%
 
 ```
 
-## 5. Salvar parte1 
-```{r SALVAR}
-saveRDS(dt_plana2, file=here::here(params$dir_dades_desti,"dt_plana.rds"))
 
-```
 

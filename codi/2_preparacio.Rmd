@@ -70,6 +70,9 @@ library("Macedonia")
 #
 # Llegir plana
 dt_plana<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) %>% as_tibble()
+
+
+dt_plana<-dt_plana%>% mutate(sortida2=sortida)
 #
 #
 #
@@ -192,7 +195,7 @@ dt_plana<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) %>% as_tibb
 
 ```
 ## 1a. Recodificaciones  de Na a dummies
-```{r recodificacions2 }
+```{r recodificacions1 }
 
 # Convertim les variables categòriques  Na o 0 --> 0, la resta 1  !!!!! ( no hi haurà missings!!)
 
@@ -206,7 +209,7 @@ dt_plana<-mutate_at(dt_plana, vars( starts_with("FP.") ), funs( if_else(.==0  | 
 
 ```
 ## 1b. Recodificaciones y calculos [Parte demografica: dt_poblacio,dt_tabaquisme]
-```{r recodificacions1 }
+```{r recodificacions2 }
 
 
 #general
@@ -215,10 +218,12 @@ dt_plana<-mutate_at(dt_plana, vars( starts_with("FP.") ), funs( if_else(.==0  | 
 dt_plana<-dt_plana %>% mutate(age=as.numeric(lubridate::ymd(dtindex)-lubridate::ymd(dnaix))/365.25)
 #2)EDAT-->age2.cat: <30,[30-56),[56-75),>=75
 
-dt_plana<-dt_plana %>% mutate(age2.cat=case_when(age<30~ "age<30",
-                                                 age>=30 & age<56 ~ "age>=30 & age<56",
-                                                 age>=56 & age<75 ~ "age>=56 & age<75",
-                                                 age >=75~ "age >=75" ))
+dt_plana<-dt_plana %>% mutate(age2.cat=case_when(age>=15 & age<20~ "age>=15 & age<20",
+                                                 age>=20 & age<25 ~ "age>=20 & age<25",
+                                                 age>=25 & age<30 ~ "age>=25 & age<30",
+                                                 age>=30 & age<35 ~ "age>=30 & age<35",
+                                                 age>=35 & age<40 ~ "age>=35 & age<40",
+                                                 age >=40~ "age >=40" ))
 
 
 dt_plana<-dt_plana%>%mutate(age_youngDM2=case_when(age<40 ~ "Yes",age>=40 ~ "No"))
@@ -256,7 +261,7 @@ dt_plana<-dt_plana%>% mutate(situacio2=case_when(situacio=="A"~"1.Activo",
 
 ```
 ## 1c. Recodificaciones y calculos [Parte FARMACOS: dt_facturacio,dt_prescripcio]
-```{r recodificacions3}
+```{r recodificacions3,eval=FALSE}
 
 ## FARMACS:: Tractaments##
 
@@ -292,7 +297,7 @@ dt_plana<-dt_plana%>% mutate(situacio2=case_when(situacio=="A"~"1.Activo",
 
 ```
 ## 1d. Recodificaciones y calculos [Parte dt_variables: dt_analitiques,dt_cliniques]
-```{r recodificacions4}
+```{r recodificacions4,eval=FALSE}
 ###V.Analitiques+V.Cliniques.##
 
 #CANVIAR-HO i arreglar dt_plana!
@@ -468,7 +473,7 @@ dt_plana<-dt_plana%>%mutate(GLICADA_CAT4=case_when(GLICADA.valor   <6.5~ 1,
 
 ```
 ## 1e. Recodificaciones y calculos [combinaciones:Part Diagnostics+Part FARMACS+Part dt_variables]
-```{r recodificacions5}
+```{r recodificacions5,eval=FALSE}
 ## Combinacions ##
 
 #dt_plana<-dt_plana%>%mutate(DG.HTA2=ifelse(DG.HTA==1  | FF.Hipotensores==1 ,1,0)) 
