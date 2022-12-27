@@ -212,7 +212,7 @@ descrTable(formula_Taula00_1,
 ```
 # 3.Supplementary.Event rates for different study events  
 
-```{r,include=T, eval=FALSE}
+```{r,include=T, eval=TRUE}
 
 dt_temp<-dades
 dt_temp<-dt_temp%>%mutate(EVENT.MORT=ifelse(situacio=="2.   Difunto",sortida2,NA)) 
