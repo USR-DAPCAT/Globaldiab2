@@ -29,7 +29,7 @@ if (mostra) {
 #--------------------------------------------------------------------------------------------------# 
 # global:
 # Rang anys per generar dates index
-data_inici='20181231'
+data_inici='20180101'
 data_final='20181231'
 #--------------------------------------------------------------------------------------------------# 
 #---------------------------- LECTURA -------------------------------------------------------------# 
@@ -48,7 +48,7 @@ library("Platan")
 library("FormatGe")
 library("Macedonia")
 library("ggflowchart2")
-data_inici='20231231'
+data_inici='20180101'
 dir_dades_desti="dades" 
 dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
@@ -78,8 +78,10 @@ if (mostra) {
   dir_dades_desti="dades/mostra" }
 #---------------------------- PREPARACIO -------------------------------------------------------------# 
 rmarkdown::render(input="./codi/3_analisi.Rmd",
-                  output_file=paste0(here::here("outputs/Informe_Analisi_"),Sys.Date()),
+                  output_file=paste0(here::here("outputs/Informe_Analisi_2018_"),Sys.Date()),
                   params = list(dir_dades_desti=dir_dades_desti) )
 #--------------------------------------------------------------------------------------------------# 
+
+
 
 

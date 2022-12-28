@@ -19,7 +19,7 @@ output:
 params:
   dir_dades_origen: "../../DADES/GLOBALDIAB2/mostra" # "../../DADES/GLOBALDIAL2/mostra"
   dir_dades_desti: "dades/mostra" 
-  bd.dindex1: '20181231'
+  bd.dindex1: '20180101'
   bd.dindex2: '20181231'
 ---
 
@@ -159,24 +159,7 @@ TaulaNs %>% kable() %>% kableExtra::kable_classic_2()
 ```
 
 
-##2. Generar DataIndex Diseno Transversal
-```{r generem la data_Index1, include=F, eval=FALSE}
 
-# 2 Data.Index -----------
-
-#[29.4.2021]#:
-
-#[29.4.2021]#: (2016-2018)
-dt_index0<-
-  dt_poblacio %>% select(idp,entrada,sortida) %>% mutate(kk=1) %>%
-  left_join(tibble(dtindex=seq(params$bd.dindex1,params$bd.dindex2,by=10000),kk=1),by="kk") %>%
-  filter(entrada<=dtindex & dtindex<=sortida)  %>%  # Filtro per usuari actiu en data index
-  select(-c(kk,entrada,sortida))
-
-gc()
-
-
-```
 ## 2. Generar DataIndex DM2-Debut
 ```{r generacio_dtindex_SCRIP, include=F, eval=TRUE}
 
@@ -255,7 +238,7 @@ dt_index<-dt_index_global
 dt_temp<-dt_index%>%
   left_join(dt_poblacio,by="idp") %>% 
     mutate(sortida=ifelse(situacio=="T", sortida, 20201231))%>%
-     filter(sortida>=params$bd.dindex1 & entrada<=params$bd.dindex1)
+     filter(sortida>=params$bd.dindex2 & entrada<=params$bd.dindex1)
   
 # filtrar per any!!, i o reonvertim dt_index.
 
@@ -728,16 +711,17 @@ Fusionar part dels arxius agregats
 ```{r fusio1}
 
 
-#dt_plana<-dt_poblacio_ESP %>% 
-#  left_join(dt_index, by="idp") %>%
-#  left_join(dtagr_diagnostics,by="idp")
-       
+
 dt_plana<-dt_index%>%
   left_join(dt_poblacio_ESP, by="idp") %>%
   left_join(dtagr_diagnostics,by="idp")
 
   
-#left_join(dt_poblacio_ESP,by="idp")%>%
+
+dt_plana2<-dt_poblacio_ESP %>% 
+  left_join(dt_index, by="idp") %>%
+  left_join(dtagr_diagnostics,by="idp")
+       
 
 
 ```
@@ -747,6 +731,7 @@ dt_plana<-dt_index%>%
 ```{r SALVAR}
 
 saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana.rds"))
+saveRDS(dt_plana2, file=here::here(params$dir_dades_desti,"dt_plana2.rds"))
 
 
 

@@ -13,7 +13,6 @@ output:
     toc: yes
 params:
    dir_dades_desti: "dades/mostra"  # "dades/poblacio
-   ANY: '20181231'
    website: https://github.com/USR-DAPCAT/
 ---
 &nbsp;
@@ -109,10 +108,6 @@ conductor<-here::here("conductor.xlsx")
 # Llegir plana
 dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana2.rds")) %>% as_tibble()
 
-
-
-
-
 ```
 ## 1. Recodificaciones de zeros,unos y fechas
 ```{r recodificacions6}
@@ -131,6 +126,9 @@ dades<- dades %>% mutate_at(vars(starts_with("FP.")), ~if_else(.==1,"Yes","No",m
 
 dades<-dades%>% mutate_at(c("dtindex","dnaix","entrada","sortida" ),ymd)
 
+dades<-dades%>% filter(age>=15 & age<=39)
+
+
 
 
 ```
@@ -138,7 +136,7 @@ dades<-dades%>% mutate_at(c("dtindex","dnaix","entrada","sortida" ),ymd)
 ## 2. Fase Analsis
 ```{r analisis2,include=TRUE}
 
-descrTable(dades)
+#descrTable(dades)
 
 
 
@@ -147,6 +145,7 @@ descrTable(dades)
 dades<-etiquetar_valors(dt=dades,variables_factors=conductor,fulla="etiquetes",camp_etiqueta="etiqueta1")
 
 
+#dades<-dades%>%mutate(EVENT.MORT=ifelse(situacio=="2.   Difunto",sortida2,NA)) 
 
 #Se excluirán las personas con diabetes gestacional, diabetes secundaria 
 #(p. ej., inducida por fármacos, inducida por sustancias químicas, 
@@ -193,20 +192,23 @@ dades<-etiquetar_valors(dt=dades,variables_factors=conductor,fulla="etiquetes",c
 
 
 formula_Taula00_1<-Macedonia::formula_text("Taula00",y="",taulavariables = conductor,dt=dades)
-descrTable(formula_Taula00_1,data=dades)
+#descrTable(formula_Taula00_1,data=dades)
+formula_Taula00_2<-Macedonia::formula_text("Taula00",y="sexe",taulavariables = conductor,dt=dades)
 
-
-
-descrTable(formula_Taula00_1, 
-           dades,
-           method = 2,
-           Q1=0,
-           Q3=1,
+descrTable(formula_Taula00_1,dades, method = 1,
            extra.labels = c("","","")) %>% export2md(header.background = "grey", 
                                                                header.color = "white", 
                                                                size=12,caption = 
                                                               "Table1.Tasas y tendencias mundiales y específicas de cada país en la incidencia de la diabetes tipo 2 de inicio en la juventud.[%,median,min,max]")
 
+descrTable(formula_Taula00_2, 
+           dades, method = 1,
+           show.p.overall = FALSE,
+           show.n=TRUE,
+           extra.labels = c("","","")) %>% export2md(header.background = "grey", 
+                                                               header.color = "white", 
+                                                               size=12,caption = 
+                                                              "Table1.Tasas y tendencias mundiales y específicas de cada país en la incidencia de la diabetes tipo 2 de inicio en la juventud.[%,median,min,max]")
 
 
 ```
@@ -223,19 +225,26 @@ dt_temp<-dt_temp%>%mutate(EVENT.MORT=ifelse(situacio=="2.   Difunto",sortida2,NA
 events_vars2<-c("EVENT.MORT")
 
 
+#mtcars %>%
+#  group_by(cyl) %>%
+#  summarise(mean = mean(disp), n = n())
+
+
+
 output_resum_event<-function(event = "EVENT.DFD") {
   
-  # event = "EVENT.DFD"
+  event = "EVENT.MORT"
   
   dt_kk<-
-    dt_temp %>% select(event:=sym(event),dtindex,sortida) %>% 
+    dt_temp %>% select(event:=sym(event),dtindex,sortida,sexe,age2.cat) %>% 
     mutate(event_data=ymd(event)) %>% 
     mutate(event=if_else(event_data>0,1,0,missing = 0)) %>% 
     mutate(dies_event=ifelse(event,event_data-dtindex,sortida-dtindex)) %>% 
     mutate(anys_event= dies_event/365.25)  
   
     
-    dt_kk %>% summarise(Patients = dplyr::n(), 
+    dt_kk%>%
+          group_by(sexe,age2.cat) %>% summarise(Patients = dplyr::n(), 
                         P_Years = sum(anys_event),
                         N=sum(event),
                         'event_rate(DI) per 10,000'=(N/P_Years)*10000,
@@ -252,6 +261,10 @@ events_vars2%>%
   etiquetar_taula("Event",taulavariables = conductor,camp_descripcio = "descripcio2") %>% 
   kableExtra::kable(caption="Supplementary Table 1. Event rates for different study events", digits=2) %>% 
   kableExtra::kable_classic_2()
+
+
+
+
 
 
 

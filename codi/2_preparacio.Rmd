@@ -306,132 +306,108 @@ dt_plana<-dt_plana%>% mutate(situacio2=case_when(situacio=="A"~"1.Activo",
 
 
 #1)
-dt_plana<-dt_plana %>%mutate(ALCOHOL.valor2=ALCOHOL.valor)
+#dt_plana<-dt_plana %>%mutate(ALCOHOL.valor2=ALCOHOL.valor)
 
 
 #2)Index de Massa Corporal->IMC.valor_cat: <15,[15-25),[25-30),>=30
-dt_plana<-dt_plana%>%mutate(IMC.valor_cat=case_when(IMC.valor   <15~ 1,
-                                                    IMC.valor   >=15 & IMC.valor   <25 ~ 2,  
-                                                    IMC.valor   >=25 & IMC.valor   <30 ~ 3,
-                                                    IMC.valor   >=30  ~ 4))
+#dt_plana<-dt_plana%>%mutate(IMC.valor_cat=case_when(IMC.valor   <15~ 1,
+#                                                    IMC.valor   >=15 & IMC.valor   <25 ~ 2,  
+#                                                    IMC.valor   >=25 & IMC.valor   <30 ~ 3,
+#                                                    IMC.valor   >=30  ~ 4))
 
 
 #3)Index de Massa Corporal->IMC.valor_cat2: <18.5,[18.5-25),[25-30),>=30.
-dt_plana<-dt_plana%>%mutate(IMC.valor_cat2=case_when(  IMC.valor   <18.5~ 1,
-                                                      IMC.valor   >=18.5 & IMC.valor   <25 ~ 2,  
-                                                      IMC.valor   >=25 & IMC.valor   <30 ~ 3,
-                                                      IMC.valor   >=30  ~ 4))
+#dt_plana<-dt_plana%>%mutate(IMC.valor_cat2=case_when(  IMC.valor   <18.5~ 1,
+#                                                      IMC.valor   >=18.5 & IMC.valor   <25 ~ 2,  
+#                                                      IMC.valor   >=25 & IMC.valor   <30 ~ 3,
+#                                                      IMC.valor   >=30  ~ 4))
 
 #4)PAS_PAD
-dt_plana<-dt_plana%>%mutate(PAS_PAD1b=case_when(     (PAS.valor<90  & PAD.valor<60)~                                      "1.[PAS<90 i PAD<60]",      
-                                                     (PAS.valor>=140 | PAD.valor>=90)~                                    "4.[PAS>=140 O PAD>=90]",     
-                                                     (PAS.valor>=120 & PAS.valor<140) | (PAD.valor>=80 & PAD.valor<90) ~  "3.[PAS:[120-140) o PAD:[80-90)]",
-                                                     (PAS.valor>=90 & PAS.valor<120)  | (PAD.valor>=60 & PAD.valor<80) ~  "2.[PAS:[90-120) o PAD:[60-80)]" )) 
-
-
-
+#dt_plana<-dt_plana%>%mutate(PAS_PAD1b=case_when(     (PAS.valor<90  & PAD.valor<60)~                                      "1.[PAS<90 i PAD<60]", #     
+#                                                     (PAS.valor>=140 | PAD.valor>=90)~                                    "4.[PAS>=140 O #PAD>=90]",     
+#                                                     (PAS.valor>=120 & PAS.valor<140) | (PAD.valor>=80 & PAD.valor<90) ~  "3.[PAS:[120-140) o #PAD:[80-90)]",
+#                                                     (PAS.valor>=90 & PAS.valor<120)  | (PAD.valor>=60 & PAD.valor<80) ~  "2.[PAS:[90-120) o #PAD:[60-80)]" )) 
 #6)CREATINA_CAT
-dt_plana<-dt_plana%>%mutate(CREATININA.valor_CAT=case_when(  CREATININA.valor<1.2 ~ 1,     
-                                                             CREATININA.valor>=1.2 ~ 2))
-
-
+#dt_plana<-dt_plana%>%mutate(CREATININA.valor_CAT=case_when(  CREATININA.valor<1.2 ~ 1,     
+#                                                             CREATININA.valor>=1.2 ~ 2))
 #7)FILTRT GLOMERULAR :CKDEPI.valor  
-dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT=case_when(CKDEPI.valor     <30~ 1,
-                                                       CKDEPI.valor     >=30 & CKDEPI.valor     <60 ~ 2,  
-                                                       CKDEPI.valor     >=60 & CKDEPI.valor     <90 ~ 3,
-                                                       CKDEPI.valor     >=90  ~ 4))
-
+#dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT=case_when(CKDEPI.valor     <30~ 1,
+#                                                       CKDEPI.valor     >=30 & CKDEPI.valor     <60 ~ 2,  
+#                                                       CKDEPI.valor     >=60 & CKDEPI.valor     <90 ~ 3,
+#                                                       CKDEPI.valor     >=90  ~ 4))
 #8)FILTRAT GLOMERULAR :CKDEPI.valor  
-dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT2=case_when(CKDEPI.valor     <30~ 1,
-                                                       CKDEPI.valor     >=30 & CKDEPI.valor     <45 ~ 2,  
-                                                       CKDEPI.valor     >=45 & CKDEPI.valor     <60 ~ 3,
-                                                       CKDEPI.valor     >=60  ~ 4))
-
+#dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT2=case_when(CKDEPI.valor     <30~ 1,
+#                                                       CKDEPI.valor     >=30 & CKDEPI.valor     <45 ~ 2,  
+#                                                       CKDEPI.valor     >=45 & CKDEPI.valor     <60 ~ 3,
+#                                                       CKDEPI.valor     >=60  ~ 4))
+#
 #9)FILTRADO GLOMERULAR :CKDEPI.valor  
-dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT3=case_when(CKDEPI.valor     <30~ 1,
-                                                        CKDEPI.valor     >=30 & CKDEPI.valor     <60 ~ 2,
-                                                        CKDEPI.valor     >=60  ~ 3))
-
-
+#dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT3=case_when(CKDEPI.valor     <30~ 1,
+#                                                        CKDEPI.valor     >=30 & CKDEPI.valor     <60 ~ 2,
+#                                                        CKDEPI.valor     >=60  ~ 3))
+#
+#
 #10)TRIGLICERITS:
-dt_plana<-dt_plana%>%mutate(TG.valor_CAT=case_when(    TG.valor   >=0 & TG.valor   <=150 ~ 1,  
-                                                       TG.valor   >150  ~ 2))
-
+#dt_plana<-dt_plana%>%mutate(TG.valor_CAT=case_when(    TG.valor   >=0 & TG.valor   <=150 ~ 1,  
+#                                                       TG.valor   >150  ~ 2))
+#
 #11)COLESTEROL TOTAL: cT.valor               
-dt_plana<-dt_plana%>%mutate(cT.valor_CAT=case_when(  cT.valor     <200~ 1,
-                                                     cT.valor     >=200 & cT.valor     <=240 ~ 2,  
-                                                     cT.valor     >240  ~ 3))
-
+#dt_plana<-dt_plana%>%mutate(cT.valor_CAT=case_when(  cT.valor     <200~ 1,
+#                                                     cT.valor     >=200 & cT.valor     <=240 ~ 2,  
+#                                                     cT.valor     >240  ~ 3))
+#
 #12)COLESTEROL HDL
-dt_plana<-dt_plana%>%mutate(cHDL.valor_CAT=case_when(cHDL.valor        <45~ 1,
-                                                     cHDL.valor        >=45 & cHDL.valor        <=90 ~ 2,  
-                                                     cHDL.valor        >90  ~ 3))
-
-
+#dt_plana<-dt_plana%>%mutate(cHDL.valor_CAT=case_when(cHDL.valor        <45~ 1,
+#                                                     cHDL.valor        >=45 & cHDL.valor        <=90 ~ 2,  
+#                                                     cHDL.valor        >90  ~ 3))
+#
 #13)COLESTEROL LDL LDL.COLESTEROL.LDL, (<70, <100, >100, >130) 
-dt_plana<-dt_plana%>%mutate(cLDL.valor_CAT=case_when(cLDL.valor        <70~ 1,
-                                                     cLDL.valor        >=70 & cLDL.valor        <130 ~ 2,  
-                                                     cLDL.valor        >=130  ~ 3))
-
-
+#dt_plana<-dt_plana%>%mutate(cLDL.valor_CAT=case_when(cLDL.valor        <70~ 1,
+#                                                     cLDL.valor        >=70 & cLDL.valor        <130 ~ 2,  
+#                                                     cLDL.valor        >=130  ~ 3))
 #14)COLESTEROL LDL LDL.COLESTEROL.LDL, <70 , 70-99, 100-129 y >o=130
-dt_plana<-dt_plana%>%mutate(cLDL.valor_CAT2=case_when(cLDL.valor       <70~ 1,
-                                                     cLDL.valor        >=70 & cLDL.valor        <100 ~ 2,
-                                                     cLDL.valor        >=100 & cLDL.valor        <130 ~ 3,
-                                                     cLDL.valor        >=130  ~ 4))
-
-
-
-dt_plana<-dt_plana%>%mutate(CAC.valor_CAT=case_when(        CAC.valor       >=1 & CAC.valor        <31 ~ 1,
-                                                            CAC.valor       >=31 & CAC.valor        <300 ~ 2,
-                                                            CAC.valor       >=300  ~ 3))
-
+#dt_plana<-dt_plana%>%mutate(cLDL.valor_CAT2=case_when(cLDL.valor       <70~ 1,
+#                                                     cLDL.valor        >=70 & cLDL.valor        <100 ~ 2,
+#                                                     cLDL.valor        >=100 & cLDL.valor        <130 ~ 3,
+#                                                     cLDL.valor        >=130  ~ 4))
+#dt_plana<-dt_plana%>%mutate(CAC.valor_CAT=case_when(        CAC.valor       >=1 & CAC.valor        <31 ~ 1,
+#                                                            CAC.valor       >=31 & CAC.valor        <300 ~ 2,
+#                                                            CAC.valor       >=300  ~ 3))
 #20)COECIENTE MICRO
-dt_plana<-dt_plana%>%mutate(CAC.valor_CAT2=case_when(        CAC.valor       <30 ~ 1,
-                                                            CAC.valor       >=31 & CAC.valor        <300 ~ 2,
-                                                            CAC.valor       >=300  ~ 3))
-
+#dt_plana<-dt_plana%>%mutate(CAC.valor_CAT2=case_when(        CAC.valor       <30 ~ 1,
+#                                                            CAC.valor       >=31 & CAC.valor        <300 ~ 2,
+#                                                            CAC.valor       >=300  ~ 3))
 #21)HBA1C
-dt_plana<-dt_plana%>%mutate(GLICADA.valor_CAT=case_when(GLICADA.valor   <5.7~ 1,
-                                                        GLICADA.valor   >=5.7 & GLICADA.valor   <7 ~ 2,  
-                                                        GLICADA.valor   >=7 &   GLICADA.valor   <8.5 ~ 3,
-                                                        GLICADA.valor   >=8.5 & GLICADA.valor   <10 ~ 4,
-                                                        GLICADA.valor   >=10  ~ 5))
-
+#dt_plana<-dt_plana%>%mutate(GLICADA.valor_CAT=case_when(GLICADA.valor   <5.7~ 1,
+#                                                        GLICADA.valor   >=5.7 & GLICADA.valor   <7 ~ 2,  
+#                                                        GLICADA.valor   >=7 &   GLICADA.valor   <8.5 ~ 3,
+#                                                        GLICADA.valor   >=8.5 & GLICADA.valor   <10 ~ 4,
+#                                                        GLICADA.valor   >=10  ~ 5))
 #22)GLUCOSA
-dt_plana<-dt_plana%>%mutate(GLUCOSA.valor_CAT=case_when(GLUCOSA.valor   <70~ 1,
-                                                        GLUCOSA.valor   >=70 & GLUCOSA.valor   <100 ~ 2,  
-                                                        GLUCOSA.valor   >=100 &   GLUCOSA.valor   <130 ~ 3,
-                                                        GLUCOSA.valor   >=130  ~ 4))
-
-
+#dt_plana<-dt_plana%>%mutate(GLUCOSA.valor_CAT=case_when(GLUCOSA.valor   <70~ 1,
+#                                                        GLUCOSA.valor   >=70 & GLUCOSA.valor   <100 ~ 2,  
+#                                                        GLUCOSA.valor   >=100 &   GLUCOSA.valor   <130 ~ 3,
+#                                                        GLUCOSA.valor   >=130  ~ 4))
+#
 #23)HBA1C.Cambiar los rangos para HbA1c (<7, [7-10), >=10)
-dt_plana<-dt_plana%>%mutate(GLICADA_CAT2=case_when(GLICADA.valor   <7~ 1,
-                                                   GLICADA.valor   >=7 & GLICADA.valor   <10 ~ 2,  
-                                                   GLICADA.valor   >=10  ~ 3))
-
-
+#dt_plana<-dt_plana%>%mutate(GLICADA_CAT2=case_when(GLICADA.valor   <7~ 1,
+#                                                   GLICADA.valor   >=7 & GLICADA.valor   <10 ~ 2,  
+#                                                   GLICADA.valor   >=10  ~ 3))
+#
 #24)HBA1C.Cambiar los rangos para HbA1c (<7, [7-8),[8-) >=10)
-dt_plana<-dt_plana%>%mutate(GLICADA_CAT3=case_when(GLICADA.valor   <7~ 1,
-                                                        GLICADA.valor   >=7 & GLICADA.valor   <8 ~ 2, 
-                                                        GLICADA.valor   >=8 & GLICADA.valor   <10 ~ 3,  
-                                                        GLICADA.valor   >=10  ~ 4))
-
-
+#dt_plana<-dt_plana%>%mutate(GLICADA_CAT3=case_when(GLICADA.valor   <7~ 1,
+#                                                        GLICADA.valor   >=7 & GLICADA.valor   <8 ~ 2, 
+#                                                        GLICADA.valor   >=8 & GLICADA.valor   <10 ~ 3,  
+#                                                        GLICADA.valor   >=10  ~ 4))
+#
+#
 #25)HBA1C.Cambiar los rangos para HbA1c <6.5 [6.5-7) [7-8), [8-9), [9-10) ,>=10
-dt_plana<-dt_plana%>%mutate(GLICADA_CAT4=case_when(GLICADA.valor   <6.5~ 1,
-                                                        GLICADA.valor   >=6.5 & GLICADA.valor   <7 ~ 2,  
-                                                        GLICADA.valor   >=7 &   GLICADA.valor   <8 ~ 3,
-                                                        GLICADA.valor   >=8 & GLICADA.valor   <9 ~ 4,
-                                                        GLICADA.valor   >=9 & GLICADA.valor   <10 ~ 5,
-                                                        GLICADA.valor   >=10  ~ 6))
-
-
-
-
-
-
-
+#dt_plana<-dt_plana%>%mutate(GLICADA_CAT4=case_when(GLICADA.valor   <6.5~ 1,
+#                                                        GLICADA.valor   >=6.5 & GLICADA.valor   <7 ~ 2,  
+#                                                        GLICADA.valor   >=7 &   GLICADA.valor   <8 ~ 3,
+#                                                        GLICADA.valor   >=8 & GLICADA.valor   <9 ~ 4,
+#                                                        GLICADA.valor   >=9 & GLICADA.valor   <10 ~ 5,
+#                                                        GLICADA.valor   >=10  ~ 6))
 #variables_cliniques	TT102	Pes [kgs] / Peso / Weight
 #variables_cliniques	EK201	Pressió Arterial Sistòlica [mm de Hg]
 #variables_cliniques	TT103	IMC (Índex de Massa Corporal) [kgs/m2]
