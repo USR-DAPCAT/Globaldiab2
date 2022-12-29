@@ -186,7 +186,7 @@ output_resum_any<-function(any="2010",dt_temp=dades) {
   # DMPrevalents
   # DMIncidents
   dt_kk<- dt_temp %>% 
-    select(entrada,dtindex,sortida,situacio,exitus_any,sexe,age,age2.cat,age_t0) %>% 
+    select(entrada,dtindex,sortida,situacio,exitus_any,sexe,age,age2.cat,age_t0,age2_t0.cat) %>% 
     mutate(DM2=if_else(dtindex>0,1,0,missing = 0)) %>% 
     mutate(exitusDM2=if_else(DM2==1 & exitus_any==1,1,0)) %>% 
     
@@ -200,9 +200,9 @@ output_resum_any<-function(any="2010",dt_temp=dades) {
     mutate(anys_seguimentDM2=if_else(DM2_prev==1,anys_seguiment,0)) %>% 
     mutate(anys_seguimentnoDM2=if_else(DM2_prev==0,anys_seguiment,0)) 
     
-    
   
-   dt_kk %>% summarise(
+  resum_dades<-function(x=dt_kk){
+   x %>% summarise(
      Year=any,
      age_mean_DM2_incident=mean(Age_DM2_incident,na.rm=T),
      age_poblacio_t0=mean(age_t0,na.rm=T),
@@ -215,7 +215,16 @@ output_resum_any<-function(any="2010",dt_temp=dades) {
      Person_YearsDM2=sum(anys_seguimentDM2),
      Person_Years_noDM2=sum(anys_seguimentnoDM2)
      
-     )
+     )} 
+    
+    resum_dades()
+    
+    dt_kk %>% 
+      split(.$age2_t0.cat) %>% 
+      purrr::map_df(~resum_dades(.x),.id = "Age_group")
+
+      
+  
     }
 
 
@@ -223,12 +232,13 @@ output_resum_any<-function(any="2010",dt_temp=dades) {
 ```
 
 
+
 ```{r}
 
 
 # Globals
 
-c("2010":"2015") %>% 
+c("2010":"2022") %>% 
   purrr::map_df(
   ~output_resum_any(.x,dt_temp=dades))
   

@@ -1,5 +1,5 @@
 ---
-title: 'Estudi GLBALDIAB . Fecha de corte:  `r params$bd.dindex1`'
+title: 'Estudi GLOBALDIAB2'
 author: "Jordi Real & Rai Puig"
 website: "https://github.com/USR-DAPCAT/"
 
@@ -18,8 +18,6 @@ output:
 
 params:
   dir_dades_desti: "dades/mostra"
-  ANY: '20181231'
-  bd.dindex1: '20181231'
 ---
 
 &nbsp;
@@ -54,160 +52,21 @@ gc()
 library("dplyr")
 library("lubridate")
 library("compareGroups")
-
-
 library("FormatGe")
 library("ggflowchart2")
 library("Macedonia")
 
-#dt_plana<-Taula_plana
-
-#########################################################################################
-#
-# Descarregar funcions github - com ho feiem abans.
-#link_source<-paste0("https://github.com/jrealgatius/Stat_codis/blob/master/funcions_propies.R","?raw=T")
-#devtools::source_url(link_source)
 #
 # Llegir plana
-dt_plana<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) %>% as_tibble()
+dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) %>% as_tibble()
 
 
-dt_plana<-dt_plana%>% mutate(sortida2=sortida)
-#
-#
-#
-#
-#
-#
-#
-#
-#Tipus DE Recodificacions i formes de recodificar variables:
-#
-#exemples::
-#
-#i)
-#dt_plana<-dt_plana %>% mutate(age=as.numeric(lubridate::ymd(dtindex)-lubridate::ymd(dnaix))/365.25)
-#
-#ii)
-#dt_plana<-dt_plana %>% mutate(age2.cat=case_when(age<30~ 1,
-#                                                 age>=30 & age<56 ~ 2,
-#                                                 age>=56 & age<75 ~ 3,
-#                                                 age >=75~ 4 ))
-#
-#iii)
-#dt_plana<-dt_plana%>% mutate(age5.cat=cut2(age,seq(20,90,5),right = F))
-#
-#iv)
-#dt_plana<-dt_plana%>% mutate(ruralitat=if_else(ruralitat=="","ND",ruralitat))
-#
-#v)
-#dt_plana<-dt_plana%>%mutate(DG.NEUROPT2=ifelse(DG.NEUROPT==1,1,0)) 
-#
-#vi)
-#dt_plana<-dt_plana%>%mutate(temps_evolucio=(ymd(dtindex)-ymd(DG.DM2)),temps_evolucio=round(temps_evolucio/365.25,2)%>% as.numeric()) 
-#
-#vii)
-#dt_plana<-dt_plana%>% mutate_at(c("dnaix","entrada","sortida" ),ymd)
-#
-#viii)
-#dt_plana<-dt_plana %>%
-#             group_by(idp)%>%mutate(DG.UEIPA.365.ULCERA_PIE=sum(DG.UEIPA.365.ULC_MI_CMBD,
-#                                                                DG.UEIPA.365.ULC_MI_CMBD_NE,
-#                                                                DG.UEIPA.365.ULC_MI,na.rm=T))%>%ungroup()
-#
-#ix)
-#dt_plana<-mutate_at(dt_plana, vars( starts_with("INCLUSIO.") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
-#
-#x)
-#df <- df %>%
-#      mutate(BPLevel = case_when(Systolic < 120 | Diastolic < 80 ~ "Normal",
-#                                 between(Systolic, 120, 139) | between(Diastolic, 80, 89)~ "Prehypertension",
-#                                 Systolic>=140 | Diastolic >= 90 ~ "Hypertension",
-#                                 TRUE ~ "Missing"
-#                                 ))
-#
-#xi)
-#dt_plana<-mutate_at(dt_plana, vars( starts_with("LDL_PP_") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
-#
-#
-#
-#xii)
-## Calcul de temps DM2
-#dades<-dades %>% mutate(Duracion_DM2 = as.period(interval(start = ymd(DG.DM2), end = ymd(20100101))) %>% time_length("year")) 
-#
-#xiii)
-## Farmacs 
-# NA --> 0 (Else=1) (No hi ha 0'0)
-#dades<-dades %>% mutate_at(vars(starts_with("FP.")),
-#                           ~if_else(is.na(.) | .==0,0,1)) 
-#
-#
-#xiv)
-#dt_temp <- dades %>% mutate(
-#  Num_ADO = rowSums(across(c("FP.SGLT2","FP.IDPP4", "FP.GLP1","FP.AGI","FP.SU","FP.TZD","FP.Metformina")),na.rm = T),
-#  Tractament_AD= case_when(
-#            FP.NIAD==0 & FP.INSULINAS==0 & Num_ADO==0 ~ 0,
-#            Num_ADO==1 & FP.INSULINAS==0 ~ 1,
-#            Num_ADO>=2 & FP.INSULINAS==0 ~ 2,
-#            Num_ADO==0 & FP.INSULINAS==1 ~ 3,
-#            Num_ADO>=1 & FP.INSULINAS==1 ~ 4, 
-#            TRUE ~ 0
-#      )
-#    )
-#
-#xv)
-#dades<-dades %>% mutate_at(vars(ends_with(".visita")), 
-#                           ~ifelse(is.na(.) | .==0,0,.) )
-#
-#
-#xvi)
-# validació
-#dades %>% filter(sexe=="H") %>% group_by(edat_grup2) %>% summarize(n(),min(edat),max(edat)) 
-#dades %>% filter(sexe=="D") %>% group_by(edat_grup2) %>% summarize(n(),min(edat),max(edat)) 
-#
-#
-#xvii)
-# Recodes
-#dades<-dades %>% 
-#  mutate(any_index=factor(lubridate::year(ymd(dtindex))))
-#
-#
-#xviii)
-#borrar dades!!
-#rm(temp,dades_regicor,regicor_df)
-#
-#xix)
-# Filtrar si hi ha analisis de subgrups
-#if (params$subgrup=="DM2") dades<-dades %>% filter(DG.DM2==1)
-#if (params$subgrup=="DM1") dades<-dades %>% filter(DG.DM1==1)
-#
-#
-#xx
-## Data fi de seguiment / Lliure d'esdeveniment (Data d'event / exitus / 20161231): 
-#dades<- dades %>% mutate(datafi=dtevent,
-#                    datafi=ifelse(is.na(datafi) & situacio=="D",sortida,dtevent),
-#                    datafi=ifelse(is.na(datafi),20161231,datafi)) 
-#
-#
-#
-#
-#########################################################################################
+
 
 ```
-## 1a. Recodificaciones  de Na a dummies
-```{r recodificacions1 }
 
-# Convertim les variables categòriques  Na o 0 --> 0, la resta 1  !!!!! ( no hi haurà missings!!)
 
-dt_plana<-mutate_at(dt_plana, vars( starts_with("INCLUSIO.") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
 
-dt_plana<-mutate_at(dt_plana, vars( starts_with("DG.") ), funs( if_else(.==0  |  is.na(.)  ,0,1)))
-dt_plana<-mutate_at(dt_plana, vars( starts_with("EVENT.") ), funs( if_else(.==0  |  is.na(.)  ,0,1)))
-
-dt_plana<-mutate_at(dt_plana, vars( starts_with("FF.") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
-dt_plana<-mutate_at(dt_plana, vars( starts_with("FP.") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
-
-```
 ## 1b. Recodificaciones y calculos [Parte demografica: dt_poblacio,dt_tabaquisme]
 ```{r recodificacions2 }
 
@@ -228,231 +87,6 @@ dt_plana<-dt_plana %>% mutate(age2.cat=case_when(age>=15 & age<20~ "age>=15 & ag
 
 dt_plana<-dt_plana%>%mutate(age_youngDM2=case_when(age<40 ~ "Yes",age>=40 ~ "No"))
 
-#3)Temps_evolucio->TEMPS EVOLUCIO DM2
-#dt_plana<-dt_plana%>%mutate(temps_evolucio=(ymd(dtindex)-ymd(DG.DM2)),temps_evolucio=round(temps_evolucio/365.25,2)%>% as.numeric()) 
-#
-
-#4)Temps d'evolució de la malaltia_categorica-->temps_evolucio_cat:<5,[5-11),[11-20),>=20.
-#dt_plana<-dt_plana%>%mutate(temps_evolucio_cat=case_when(
-#                                                      temps_evolucio<5~ 1,
-#                                                      temps_evolucio   >=5 &   temps_evolucio   <11 ~ 2,  
-#                                                      temps_evolucio   >=11 &   temps_evolucio   <20 ~ 3,
-#                                                      temps_evolucio>=20  ~ 4))
-
-
-#5)Temps evolucó diabetis, fer nova categorització , menys de 5 anys, entre 5 i 15 anys i de 50 i més anys d'evolució.
-#dt_plana<-dt_plana%>%mutate(temps_evolucio_cat2=case_when(
-#                                                      temps_evolucio<5~ 1,
-#                                                      temps_evolucio   >=5 &   temps_evolucio   <15 ~ 2,  
-#                                                      temps_evolucio>=15  ~ 3))
-
-
-
-#6)Tabac Categoric.
-#dt_plana<-dt_plana%>% mutate(tabac2=case_when(tabac.valor==0~"1.   No Fumador",
-#                                              tabac.valor==1~"2.   Fumador",
-#                                              tabac.valor==2~"3.   Exfumador"))
-
-
-#7)Situacio Categoric.
-dt_plana<-dt_plana%>% mutate(situacio2=case_when(situacio=="A"~"1.Activo",
-                                              situacio=="D"~"2.Difunto",
-                                              situacio=="T"~"3.Traslado"))
-
-```
-## 1c. Recodificaciones y calculos [Parte FARMACOS: dt_facturacio,dt_prescripcio]
-```{r recodificacions3,eval=FALSE}
-
-## FARMACS:: Tractaments##
-
-#------------------------------#
-#i)     ADO->FF.Ado
-#------------------------------#
-#1.     FF.Biguanidas     
-#2.     FF.Sulfonilureas
-#3.     FF.Glinides
-#4.     FF.Tiazolidinadiones 
-#5.     FF.ISGLT2
-#6.     FF.IDPP4  
-#7.     FF.OtrAntidiabOrales 
-#8.     FF.InAlfaGluc
-#9.     FF.Combinaciones 
-
-
-#------------------------------#
-#ii)    INSULINAS->FF.Insul
-#------------------------------#
-#1.     FF.InAccInt           
-#2.     FF.InAccLenta         
-#3.     FF.InAccRapida  
-#4.     FF.InMixta  
-
-
-#------------------------------#
-#iii)   ADO+INSULINAS-->FF.Ado+FF.Insul
-#------------------------------#
-#1.     i)     ADO          
-#2.     ii)    INSULINAS
-
-
-```
-## 1d. Recodificaciones y calculos [Parte dt_variables: dt_analitiques,dt_cliniques]
-```{r recodificacions4,eval=FALSE}
-###V.Analitiques+V.Cliniques.##
-
-#CANVIAR-HO i arreglar dt_plana!
-
-
-
-
-#1)
-#dt_plana<-dt_plana %>%mutate(ALCOHOL.valor2=ALCOHOL.valor)
-
-
-#2)Index de Massa Corporal->IMC.valor_cat: <15,[15-25),[25-30),>=30
-#dt_plana<-dt_plana%>%mutate(IMC.valor_cat=case_when(IMC.valor   <15~ 1,
-#                                                    IMC.valor   >=15 & IMC.valor   <25 ~ 2,  
-#                                                    IMC.valor   >=25 & IMC.valor   <30 ~ 3,
-#                                                    IMC.valor   >=30  ~ 4))
-
-
-#3)Index de Massa Corporal->IMC.valor_cat2: <18.5,[18.5-25),[25-30),>=30.
-#dt_plana<-dt_plana%>%mutate(IMC.valor_cat2=case_when(  IMC.valor   <18.5~ 1,
-#                                                      IMC.valor   >=18.5 & IMC.valor   <25 ~ 2,  
-#                                                      IMC.valor   >=25 & IMC.valor   <30 ~ 3,
-#                                                      IMC.valor   >=30  ~ 4))
-
-#4)PAS_PAD
-#dt_plana<-dt_plana%>%mutate(PAS_PAD1b=case_when(     (PAS.valor<90  & PAD.valor<60)~                                      "1.[PAS<90 i PAD<60]", #     
-#                                                     (PAS.valor>=140 | PAD.valor>=90)~                                    "4.[PAS>=140 O #PAD>=90]",     
-#                                                     (PAS.valor>=120 & PAS.valor<140) | (PAD.valor>=80 & PAD.valor<90) ~  "3.[PAS:[120-140) o #PAD:[80-90)]",
-#                                                     (PAS.valor>=90 & PAS.valor<120)  | (PAD.valor>=60 & PAD.valor<80) ~  "2.[PAS:[90-120) o #PAD:[60-80)]" )) 
-#6)CREATINA_CAT
-#dt_plana<-dt_plana%>%mutate(CREATININA.valor_CAT=case_when(  CREATININA.valor<1.2 ~ 1,     
-#                                                             CREATININA.valor>=1.2 ~ 2))
-#7)FILTRT GLOMERULAR :CKDEPI.valor  
-#dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT=case_when(CKDEPI.valor     <30~ 1,
-#                                                       CKDEPI.valor     >=30 & CKDEPI.valor     <60 ~ 2,  
-#                                                       CKDEPI.valor     >=60 & CKDEPI.valor     <90 ~ 3,
-#                                                       CKDEPI.valor     >=90  ~ 4))
-#8)FILTRAT GLOMERULAR :CKDEPI.valor  
-#dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT2=case_when(CKDEPI.valor     <30~ 1,
-#                                                       CKDEPI.valor     >=30 & CKDEPI.valor     <45 ~ 2,  
-#                                                       CKDEPI.valor     >=45 & CKDEPI.valor     <60 ~ 3,
-#                                                       CKDEPI.valor     >=60  ~ 4))
-#
-#9)FILTRADO GLOMERULAR :CKDEPI.valor  
-#dt_plana<-dt_plana%>%mutate(CKDEPI.valor_CAT3=case_when(CKDEPI.valor     <30~ 1,
-#                                                        CKDEPI.valor     >=30 & CKDEPI.valor     <60 ~ 2,
-#                                                        CKDEPI.valor     >=60  ~ 3))
-#
-#
-#10)TRIGLICERITS:
-#dt_plana<-dt_plana%>%mutate(TG.valor_CAT=case_when(    TG.valor   >=0 & TG.valor   <=150 ~ 1,  
-#                                                       TG.valor   >150  ~ 2))
-#
-#11)COLESTEROL TOTAL: cT.valor               
-#dt_plana<-dt_plana%>%mutate(cT.valor_CAT=case_when(  cT.valor     <200~ 1,
-#                                                     cT.valor     >=200 & cT.valor     <=240 ~ 2,  
-#                                                     cT.valor     >240  ~ 3))
-#
-#12)COLESTEROL HDL
-#dt_plana<-dt_plana%>%mutate(cHDL.valor_CAT=case_when(cHDL.valor        <45~ 1,
-#                                                     cHDL.valor        >=45 & cHDL.valor        <=90 ~ 2,  
-#                                                     cHDL.valor        >90  ~ 3))
-#
-#13)COLESTEROL LDL LDL.COLESTEROL.LDL, (<70, <100, >100, >130) 
-#dt_plana<-dt_plana%>%mutate(cLDL.valor_CAT=case_when(cLDL.valor        <70~ 1,
-#                                                     cLDL.valor        >=70 & cLDL.valor        <130 ~ 2,  
-#                                                     cLDL.valor        >=130  ~ 3))
-#14)COLESTEROL LDL LDL.COLESTEROL.LDL, <70 , 70-99, 100-129 y >o=130
-#dt_plana<-dt_plana%>%mutate(cLDL.valor_CAT2=case_when(cLDL.valor       <70~ 1,
-#                                                     cLDL.valor        >=70 & cLDL.valor        <100 ~ 2,
-#                                                     cLDL.valor        >=100 & cLDL.valor        <130 ~ 3,
-#                                                     cLDL.valor        >=130  ~ 4))
-#dt_plana<-dt_plana%>%mutate(CAC.valor_CAT=case_when(        CAC.valor       >=1 & CAC.valor        <31 ~ 1,
-#                                                            CAC.valor       >=31 & CAC.valor        <300 ~ 2,
-#                                                            CAC.valor       >=300  ~ 3))
-#20)COECIENTE MICRO
-#dt_plana<-dt_plana%>%mutate(CAC.valor_CAT2=case_when(        CAC.valor       <30 ~ 1,
-#                                                            CAC.valor       >=31 & CAC.valor        <300 ~ 2,
-#                                                            CAC.valor       >=300  ~ 3))
-#21)HBA1C
-#dt_plana<-dt_plana%>%mutate(GLICADA.valor_CAT=case_when(GLICADA.valor   <5.7~ 1,
-#                                                        GLICADA.valor   >=5.7 & GLICADA.valor   <7 ~ 2,  
-#                                                        GLICADA.valor   >=7 &   GLICADA.valor   <8.5 ~ 3,
-#                                                        GLICADA.valor   >=8.5 & GLICADA.valor   <10 ~ 4,
-#                                                        GLICADA.valor   >=10  ~ 5))
-#22)GLUCOSA
-#dt_plana<-dt_plana%>%mutate(GLUCOSA.valor_CAT=case_when(GLUCOSA.valor   <70~ 1,
-#                                                        GLUCOSA.valor   >=70 & GLUCOSA.valor   <100 ~ 2,  
-#                                                        GLUCOSA.valor   >=100 &   GLUCOSA.valor   <130 ~ 3,
-#                                                        GLUCOSA.valor   >=130  ~ 4))
-#
-#23)HBA1C.Cambiar los rangos para HbA1c (<7, [7-10), >=10)
-#dt_plana<-dt_plana%>%mutate(GLICADA_CAT2=case_when(GLICADA.valor   <7~ 1,
-#                                                   GLICADA.valor   >=7 & GLICADA.valor   <10 ~ 2,  
-#                                                   GLICADA.valor   >=10  ~ 3))
-#
-#24)HBA1C.Cambiar los rangos para HbA1c (<7, [7-8),[8-) >=10)
-#dt_plana<-dt_plana%>%mutate(GLICADA_CAT3=case_when(GLICADA.valor   <7~ 1,
-#                                                        GLICADA.valor   >=7 & GLICADA.valor   <8 ~ 2, 
-#                                                        GLICADA.valor   >=8 & GLICADA.valor   <10 ~ 3,  
-#                                                        GLICADA.valor   >=10  ~ 4))
-#
-#
-#25)HBA1C.Cambiar los rangos para HbA1c <6.5 [6.5-7) [7-8), [8-9), [9-10) ,>=10
-#dt_plana<-dt_plana%>%mutate(GLICADA_CAT4=case_when(GLICADA.valor   <6.5~ 1,
-#                                                        GLICADA.valor   >=6.5 & GLICADA.valor   <7 ~ 2,  
-#                                                        GLICADA.valor   >=7 &   GLICADA.valor   <8 ~ 3,
-#                                                        GLICADA.valor   >=8 & GLICADA.valor   <9 ~ 4,
-#                                                        GLICADA.valor   >=9 & GLICADA.valor   <10 ~ 5,
-#                                                        GLICADA.valor   >=10  ~ 6))
-#variables_cliniques	TT102	Pes [kgs] / Peso / Weight
-#variables_cliniques	EK201	Pressió Arterial Sistòlica [mm de Hg]
-#variables_cliniques	TT103	IMC (Índex de Massa Corporal) [kgs/m2]
-#variables_cliniques	ALRIS	Consum alcohol (grau de risc) {Alcohol}
-#variables_cliniques	TT101	Alçada [cm] / Talla / Height
-#variables_cliniques	EK202	Pressió Arterial Diastòlica [mm de Hg]
-#variables_cliniques	VK2020	Polsos - Pedi/tibial post. dret
-#variables_cliniques	VK2021	Polsos - Pedi/tibial - post. esquerre
-#variables_cliniques	TK2011	Pedi Dret {ITB}
-#variables_cliniques	TK201E	ITB Esqerre {ITB}
-#variables_cliniques	TK2013	Tibial Post Dret {ITB}
-#variables_cliniques	TK2012	Pedi Esquerre {ITB}
-#variables_cliniques	TK2014	Tibial Post Esquerre {ITB}
-#variables_cliniques	TK201D	ITB Dret {ITB}
-
-
-#1)Index de Massa Corporal->IMC.valor_cat: <15,[15-25),[25-30),>=30
-
-#dt_plana<-dt_plana%>%mutate(IMC.valor_cat=case_when(TT103.valor   <15~ "IMC.valor   <15",
-#                                                    TT103.valor   >=15 & TT103.valor   <25 ~ "IMC.valor   >=15 & IMC.valor",  
-#                                                    TT103.valor   >=25 & TT103.valor   <30 ~ "IMC.valor   >=25 & IMC.valor   <30",
-#                                                    TT103.valor   >=30  ~ "IMC.valor   >=30"))
-
-#2)COLESTEROL TOTAL: cT.valor               
-#dt_plana<-dt_plana%>%mutate(cT.valor_CAT=case_when(  COLTOT.valor     <200~ "COLTOT.valor     <200",
-#                                                     COLTOT.valor     >=200 & COLTOT.valor     <=240 ~ "COLTOT.valor     >=200 & 
-#                                                     COLTOT.valor     <=240 ",  
-#                                                     COLTOT.valor     >240  ~ " COLTOT.valor     >240"))
-#3)COLESTEROL HDL
-#dt_plana<-dt_plana%>%mutate(cHDL.valor_CAT=case_when(COLHDL.valor        <45~ "COLHDL.valor        <45",
-#                                                     COLHDL.valor        >=45 & COLHDL.valor        <=90 ~ "COLHDL.valor        >=45 & 
-#                                                     COLHDL.valor        <=90",  
-#                                                     COLHDL.valor        >90  ~ "COLHDL.valor        >90"))
-#4)COLESTEROL LDL LDL.COLESTEROL.LDL, (<70, <100, >100, >130) 
-#dt_plana<-dt_plana%>%mutate(cLDL.valor_CAT=case_when(COLLDL.valor        <70~ "COLLDL.valor        <70",
-#                                                     COLLDL.valor        >=70 & COLLDL.valor        <130 ~ "COLLDL.valor        >=70 & 
-#                                                     COLLDL.valor      <130",  
-#                                                     COLLDL.valor        >=130  ~ "COLLDL.valor        >=130"))
-
-```
-## 1e. Recodificaciones y calculos [combinaciones:Part Diagnostics+Part FARMACS+Part dt_variables]
-```{r recodificacions5,eval=FALSE}
-## Combinacions ##
-
-#dt_plana<-dt_plana%>%mutate(DG.HTA2=ifelse(DG.HTA==1  | FF.Hipotensores==1 ,1,0)) 
 
 ```
 
@@ -465,7 +99,6 @@ saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana2.rds"))
 
 ```
 
-```
 
 &nbsp;
 <hr />
