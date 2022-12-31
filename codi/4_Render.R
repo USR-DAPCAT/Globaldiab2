@@ -14,74 +14,34 @@
 
 rm(list=ls())
 gc()
-mostra=T
-library("dplyr")
-library("Platan")
-library("FormatGe")
-library("Macedonia")
-library("ggflowchart2")
+mostra=F
 
 dir_dades_desti="dades" 
 dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
-  dir_dades_origen="../../DADES/GLOBALDIAB2/mostra"
+  dir_dades_origen="../DADES/GLOBALDIAB2/mostra"
   dir_dades_desti="dades/mostra" }
 #--------------------------------------------------------------------------------------------------# 
 # global:
-# Rang anys per generar dates index
-data_inici='20180101'
-data_final='20181231'
 #--------------------------------------------------------------------------------------------------# 
 #---------------------------- LECTURA -------------------------------------------------------------# 
 rmarkdown::render(input="./codi/1_lectura.Rmd",
                   output_file=paste0(here::here("outputs/Informe_Lectura_Gran_Funcio_"),Sys.Date()),
                   params = list(dir_dades_desti=dir_dades_desti ,
-                                dir_dades_origen=dir_dades_origen,
-                                bd.dindex1=data_inici,
-                                bd.dindex2=data_final))
+                                dir_dades_origen=dir_dades_origen))
 #--------------------------------------------------------------------------------------------------# 
 rm(list=ls())
 gc()
-mostra=T
-library("dplyr")
-library("Platan")
-library("FormatGe")
-library("Macedonia")
-library("ggflowchart2")
-data_inici='20180101'
+mostra=F
+
 dir_dades_desti="dades" 
 dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
-  dir_dades_origen="../../DADES/GLOBALDIAB2/mostra"
+  dir_dades_origen="../DADES/GLOBALDIAB2/mostra"
   dir_dades_desti="dades/mostra" }
 #---------------------------- PREPARACIO -------------------------------------------------------------# 
-rmarkdown::render(input="./codi/2_preparacio.Rmd",
-                  output_file=paste0(here::here("outputs/Informe_Preparacio_"),Sys.Date()),
+rmarkdown::render(input="./codi/2_Analisi_preparacio.Rmd",
+                  output_file=paste0(here::here("outputs/Informe_exploratori"),Sys.Date()),
                   params = list(dir_dades_desti=dir_dades_desti) )
 #--------------------------------------------------------------------------------------------------# 
-
-
-#--------------------------------------------------------------------------------------------------# 
-rm(list=ls())
-gc()
-mostra=T
-library("dplyr")
-library("Platan")
-library("FormatGe")
-library("Macedonia")
-library("ggflowchart2")
-data_inici='20231231'
-dir_dades_desti="dades" 
-dir_dades_origen="../DADES/GLOBALDIAB2" 
-if (mostra) {
-  dir_dades_origen="../../DADES/GLOBALDIAB2/mostra"
-  dir_dades_desti="dades/mostra" }
-#---------------------------- PREPARACIO -------------------------------------------------------------# 
-rmarkdown::render(input="./codi/3_analisi.Rmd",
-                  output_file=paste0(here::here("outputs/Informe_Analisi_2018_"),Sys.Date()),
-                  params = list(dir_dades_desti=dir_dades_desti) )
-#--------------------------------------------------------------------------------------------------# 
-
-
-
 

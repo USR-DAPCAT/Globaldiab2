@@ -1,5 +1,5 @@
 ---
-title: 'Tasas y tendencias mundiales y específicas de cada país en la incidencia de la diabetes tipo 2 de inicio en la juventud'
+title: 'Global and country-specific rates and trends in the incidence of young-onset type 2 diabetes'
 author: "Jordi Real & Rai Puig"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
@@ -12,7 +12,7 @@ output:
   word_document:
     toc: yes
 params:
-   dir_dades_desti: "dades/mostra"  # "dades/poblacio
+   dir_dades_desti: "dades" # "dades/mostra"  # "dades"
    website: https://github.com/USR-DAPCAT/
 ---
 &nbsp;
@@ -30,7 +30,7 @@ params:
 
 ****
 
-## 0. Estat:
+# Estat
 
 **Lecturas,Tabla Plana, agregaciones y parte global descriptiva**
 
@@ -45,24 +45,33 @@ params:
 &check; iii.diabetes de inicio en la madurez de los jóvenes y formas raras de diabetes <br/>
 
 
-
 Desembre / 2022
 
-&check; 1.	La diabetes se determinara y definira sobre la base de un diagnostico o código de diagnostico proporcionado por un profesional sanitario pertinente.<br/>
-        O tendra que cumplir estos dos suopistos : <br/>
-&check; 2a.La presencia de dos o mas valores de glucosa en sangre o HbA1c≥6,5 % (48 mmol/mol)), en un período de 6 meses.<br/>
-&check; 2b.Prescripción de medicamentos para bajar la glucosa durante al menos 3 meses <br/>
+&check; 1.	Diabetes will be ascertained and defined on the basis of a diagnosis or diagnostic code provided by a relevant healthcare professional, or at least two of:  <br/>
+        
+&check; 2a.the presence of two or more blood glucose or HbA1c values within the diagnostic ranges for diabetes (fasting plasma glucose ≥7.0 mmol/l (126 mg/dl), random or 2-hour plasma glucose ≥11.1 mmol/l (200 mg/dl) or HbA1c ≥6.5% (48 mmol/mol)), within a 6-month period.<br/>
+&check; 2b.prescription of glucose-lowering medication for at least 3 months <br/>
+&check; 2c.	the provision of a service that is unique to people with diabetes <br/>
 
 
 
  
 **Pendientes**
 
-&check; Revision , depuracion de  errores y exclusiones   <br/>
+&check; Revision de classificación de diabetis, depuracion de  errores y exclusiones   <br/>
 
-# Fase de validacion de base
 
-## Fase Preparacion
+# Objetivos
+
+
+- The overall aim of the project is to understand trends of the incidence of young-onset type 2 diabetes and mortality trends in younger people with diabetes in multiple sites around the world. 
+
+
+## Specific aims:
+
+Aim 1: to assess the regional and country-specific rates and trends in the incidenceof young-onset type 2 diabetes and mortality trends among younger people with diabetes from 2000 onwards (or a subset thereof);
+Aim 2: to investigate if the changes in the incidence of young-onset type 2 diabetes over time varied by country or region, age group and sex.  
+
 
 
 ```{r setup, include = FALSE}
@@ -73,8 +82,9 @@ library("dplyr")
 library("lubridate")
 library("compareGroups")
 library("FormatGe")
-library("ggflowchart2")
+# library("ggflowchart2")
 library("Macedonia")
+library("kableExtra")
 
 # Llegir plana
 
@@ -88,14 +98,16 @@ conductor<-here::here("conductor.xlsx")
 
 #######################################################
 # Llegir plana
-dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) %>% as_tibble()
+dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) 
+
+
 
 ```
-## 1. Recodificaciones de zeros,unos y fechas
 
 
 ```{r}
 
+## 1. Recodificaciones de zeros,unos y fechas
 
 #general
 
@@ -103,12 +115,12 @@ dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) %>% as_tibble(
 dades<-dades %>% mutate(age=as.numeric(lubridate::ymd(dtindex)-lubridate::ymd(dnaix))/365.25)
 #2)EDAT-->age2.cat: <30,[30-56),[56-75),>=75
 
-dades<-dades %>% mutate(age2.cat=case_when(age>=15 & age<20~ "age>=15 & age<20",
-                                                 age>=20 & age<25 ~ "age>=20 & age<25",
-                                                 age>=25 & age<30 ~ "age>=25 & age<30",
-                                                 age>=30 & age<35 ~ "age>=30 & age<35",
-                                                 age>=35 & age<40 ~ "age>=35 & age<40",
-                                                 age >=40~ "age >=40" ))
+dades<-dades %>% mutate(age2.cat=case_when(age>=15 & age<20~ "age>=15 & <20",
+                                                 age>=20 & age<25 ~ "age>=20 & <25",
+                                                 age>=25 & age<30 ~ "age>=25 & <30",
+                                                 age>=30 & age<35 ~ "age>=30 & <35",
+                                                 age>=35 & age<40 ~ "age>=35 & <40",
+                                                 age >=40~ "age>=40" ))
 
 
 dades<-dades %>% mutate(age_youngDM2=case_when(age<40 ~ "Yes",age>=40 ~ "No"))
@@ -121,10 +133,10 @@ dades<-dades %>% mutate(age_youngDM2=case_when(age<40 ~ "Yes",age>=40 ~ "No"))
 
 
 
-## 2. Fase Analsis
+# Analsis
 
 
-```{r analisis3,include=TRUE, warning=FALSE}
+```{r analisis3,include=TRUE, warning=FALSE, eval=FALSE}
 
 formula_Taula00_1<-Macedonia::formula_text("Taula00",y="",taulavariables = conductor,dt=dades)
 #descrTable(formula_Taula00_1,data=dades)
@@ -147,18 +159,17 @@ descrTable(formula_Taula00_2,
 
 
 ```
-# 3.Supplementary.Event rates for different study events  
 
 
 ```{r,include=T, eval=TRUE}
 
 dt_temp<-dades
 
-output_resum_any<-function(any="2010",dt_temp=dades) {
+output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
   
   # any="2010"
   # dt_temp=dades
-  
+  # DM="DM2"
   # Dates
   data0=paste0(any,"0101")
   datafi=paste0(any,"1231")
@@ -168,62 +179,86 @@ output_resum_any<-function(any="2010",dt_temp=dades) {
     filter(entrada<=data0 & sortida>data0) %>% 
     mutate(exitus_any = ifelse(situacio=="D" & sortida<=datafi,1,0)) %>% # Actualitzo exitus any
     mutate(sortida= ifelse(sortida>datafi,datafi,sortida))  %>%         # Actualitzo data sortida any
-    mutate(age_t0=as.numeric(lubridate::ymd(data0)-lubridate::ymd(dnaix))/365.25)  # Edat a t0 
+    mutate(age_t0=as.numeric(lubridate::ymd(data0)-lubridate::ymd(dnaix))/365.25)  # Edat en t0 
     
   
-  # Filtro per grup d'edat 
+  # Filtro per grups d'edat analitzat
   dt_temp<-dt_temp %>% filter(age_t0>=15 & age_t0<40)
   
   # Grups d'edat 
-  dt_temp<-dt_temp %>% mutate(age2_t0.cat=case_when(age_t0>=15 & age_t0<20~ "age>=15 & age<20",
-                                                 age_t0>=20 & age_t0<25 ~ "age>=20 & age<25",
-                                                 age_t0>=25 & age_t0<30 ~ "age>=25 & age<30",
-                                                 age_t0>=30 & age_t0<35 ~ "age>=30 & age<35",
-                                                 age_t0>=35 & age_t0<40 ~ "age>=35 & age<40",
-                                                 age_t0 >=40~ "age >=40" ))
-
+  dt_temp<-dt_temp %>% mutate(age2_t0.cat=case_when(age_t0>=15 & age_t0<20~ "[15-19]",
+                                                 age_t0>=20 & age_t0<25 ~ "[20-24]",
+                                                 age_t0>=25 & age_t0<30 ~ "[25-29]",
+                                                 age_t0>=30 & age_t0<35 ~ "[30-34]",
+                                                 age_t0>=35 & age_t0<40 ~ "[35-39]",
+                                                 age_t0 >=40~ "age>=40" ))
+  dt_temp<-dt_temp %>% mutate(grupAgeSex=paste0(sexe,": ",age2_t0.cat))
   
   # DMPrevalents
   # DMIncidents
   dt_kk<- dt_temp %>% 
-    select(entrada,dtindex,sortida,situacio,exitus_any,sexe,age,age2.cat,age_t0,age2_t0.cat) %>% 
-    mutate(DM2=if_else(dtindex>0,1,0,missing = 0)) %>% 
-    mutate(exitusDM2=if_else(DM2==1 & exitus_any==1,1,0)) %>% 
+    select(dtindex,sortida,situacio,exitus_any,sexe,age,age2.cat,age_t0,age2_t0.cat,grupAgeSex, DM_esp=!!DM) %>% 
+    mutate(DM_esp=if_else(DM_esp==1,1,0,missing = 0)) %>% 
+    mutate(DM=if_else(dtindex>0,1,0,missing = 0)) %>% 
+    mutate(exitusDM=if_else(DM==1 & exitus_any==1,1,0)) %>% 
     
-    mutate(DM2_prev=if_else(dtindex<data0,1,0,missing = 0)) %>% 
-    mutate(DM2_incident=if_else(dtindex>=data0 & dtindex<=datafi,1,0,missing = 0)) %>% 
-    mutate(Age_DM2_incident=ifelse(DM2_incident,age,NA)) %>% 
+    # DM GLOBAL
+    mutate(DM_prev=if_else(dtindex<data0,1,0,missing = 0)) %>% 
+    mutate(DM_incident=if_else(dtindex>=data0 & dtindex<=datafi,1,0,missing = 0)) %>% 
+    mutate(Age_DM_incident=ifelse(DM_incident==1,age,NA)) %>% 
+    
+    # DM especific (DM1 / DM2 / DM3)
+    mutate(DM_incident_esp=if_else(dtindex>=data0 & dtindex<=datafi,DM_esp,0,missing = 0)) %>% 
+    mutate(Age_DM_incident_esp=ifelse(DM_incident_esp==1,age,NA)) %>% 
+    
     
     mutate(dies_seguiment=lubridate::ymd(sortida)-lubridate::ymd(data0)) %>% 
     mutate(anys_seguiment=as.numeric(dies_seguiment/365.25)) %>% 
     
-    mutate(anys_seguimentDM2=if_else(DM2_prev==1,anys_seguiment,0)) %>% 
-    mutate(anys_seguimentnoDM2=if_else(DM2_prev==0,anys_seguiment,0)) 
+    mutate(anys_seguimentDM=if_else(DM_prev==1,anys_seguiment,0)) %>% 
+    mutate(anys_seguimentnoDM=if_else(DM_prev==0,anys_seguiment,0)) 
     
-  
   resum_dades<-function(x=dt_kk){
    x %>% summarise(
      Year=any,
-     age_mean_DM2_incident=mean(Age_DM2_incident,na.rm=T),
-     age_poblacio_t0=mean(age_t0,na.rm=T),
-     N_DM2_inc=sum(DM2_incident),
-     N_exitusDM2=sum(exitusDM2),
-     N_DM2_prevalents=sum(DM2_prev),
+     age_DM2inc=mean(Age_DM_incident,na.rm=T),
+     age_pob_t0=mean(age_t0,na.rm=T),
+     N_DM_inc=sum(DM_incident),
+     N_DM_esp_inc=sum(DM_incident_esp),
+     N_exitusDM=sum(exitusDM),
+     N_DM_prev=sum(DM_prev),
      Population=n(),
      
      N_exitus_totals=sum(exitus_any),
-     Person_YearsDM2=sum(anys_seguimentDM2),
-     Person_Years_noDM2=sum(anys_seguimentnoDM2)
-     
-     )} 
+     PYears_DM2=sum(anys_seguimentDM),
+     PYears_noDM2=sum(anys_seguimentnoDM))
+    } 
     
-    resum_dades()
+    out_global<-
+      resum_dades(dt_kk) %>% 
+      mutate(DM=DM,Group="Overall(15-39 yrs)",id=1)
     
-    dt_kk %>% 
-      split(.$age2_t0.cat) %>% 
-      purrr::map_df(~resum_dades(.x),.id = "Age_group")
+    out_sexe<-dt_kk %>% 
+      split(.$sexe) %>% 
+      purrr::map_df(~resum_dades(.x),.id = "Group") %>% 
+      mutate(id=c(2,8))
+   
+    # out_grups_edat<-dt_kk %>% 
+    #   split(.$age2_t0.cat) %>% 
+    #   purrr::map_df(~resum_dades(.x),.id = "Group")
 
-      
+    out_SexEdat<-dt_kk %>% 
+      split(.$grupAgeSex) %>% 
+      purrr::map_df(~resum_dades(.x),.id = "Group")%>% 
+      mutate(id=c(seq(3,7),seq(9,13)))
+   
+    
+    # Fusió
+    out_global %>% 
+      relocate(c(DM,id,Group), .before = Year) %>% 
+      bind_rows(out_sexe) %>% 
+      bind_rows(out_SexEdat) %>% 
+      arrange(id)
   
     }
 
@@ -231,17 +266,22 @@ output_resum_any<-function(any="2010",dt_temp=dades) {
 
 ```
 
+## Tabla resumen 
 
-
-```{r}
+```{r, include=TRUE}
 
 
 # Globals
 
-c("2010":"2022") %>% 
+
+c("2006":"2022") %>% 
   purrr::map_df(
-  ~output_resum_any(.x,dt_temp=dades))
+  ~output_resum_any(.x,dt_temp=dades)) %>% 
+  kable(caption = "Summary table",digits = 2) %>% 
+  kableExtra::kable_classic_2()
   
+  
+output_resum_any("2010",dt_temp=dades,DM="DM1")
   
 
 # Per grups d'edat i sexe

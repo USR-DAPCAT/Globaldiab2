@@ -1,5 +1,5 @@
 ---
-title: 'Estudi GLBALDIAB 2007-2018. Fecha de corte:  `r params$bd.dindex1`'
+title: 'Estudi GLOBALDIAB2 2007-2018. Fecha de corte:  `r params$bd.dindex1`'
 author: "Jordi Real & Rai Puig"
 website: "https://github.com/USR-DAPCAT/"
 
@@ -19,8 +19,7 @@ output:
 params:
   dir_dades_origen: "../DADES/GLOBALDIAB2/mostra" # "../../DADES/GLOBALDIAL2/mostra"
   dir_dades_desti: "dades/mostra" 
-  bd.dindex1: '20180101'
-  bd.dindex2: '20181231'
+
 ---
 
 
@@ -53,11 +52,11 @@ library(dplyr)
 #link_source<-paste0("https://github.com/jrealgatius/Stat_codis/blob/master/funcions_propies.R","?raw=T")
 #devtools::source_url(link_source)
 
-conductor_codis<-here::here("CATALEG.xlsx")
+conductor_codis<-here::here("cataleg_globaldiab.xls")
 
 directori_dades_origen<-params$dir_dades_origen
 
-dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod,domini,agr)
+dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")
 
 
 #
@@ -70,8 +69,10 @@ dt_cataleg<-readxl::read_excel(conductor_codis,col_types = "text")%>% select(cod
 # library("devtools")
 library("dplyr")
 library("kableExtra")
-library("Platan")
+# library("Platan")
 library("FormatGe")
+
+source("Funcions_lectura.R")
 
 #devtools::install_github("USR-DAPCAT/Platan",build_vignettes = TRUE)
 #devtools::install_github("USR-DAPCAT/FormatGe",build_vignettes = TRUE)
@@ -84,6 +85,8 @@ library("FormatGe")
 ```
 
 
+
+
 ## 1. Lectura previa DataIndex 
 ```{r lectura1, include=T}
 
@@ -92,23 +95,20 @@ library("FormatGe")
 #i)
 
 #[uni]
-dt_poblacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_20221118.rds")) %>% as_tibble()
+dt_poblacio<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_20221118.rds")) 
 #variable.names(dt_poblacio)
 #[1] "idp"      "sexe"     "situacio" "dnaix"    "entrada"  "sortida"  "agr_pais"
-dt_poblacio_ESP<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_esp_20221118.rds")) %>% as_tibble()
+dt_poblacio_ESP<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_poblacio_esp_20221118.rds")) 
 
 
 #ii)
-dt_diagnostics<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_diagnostics_20221118.rds"))%>%
-  as_tibble()
+dt_diagnostics<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_diagnostics_20221118.rds"))
 
 
 #iii)
-dt_analitiques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_analitiques_20221118.rds"))%>%
-  as_tibble()
+dt_analitiques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_analitiques_20221118.rds"))
 
-dt_cliniques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_cliniques_20221118.rds"))%>%
-  as_tibble()
+dt_cliniques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_cliniques_20221118.rds"))
 # Fusiono cliniques + variables
 
 dt_variables<-dt_analitiques%>%
@@ -121,135 +121,336 @@ dt_variables<-dt_analitiques%>%
 
 
 #iv)
-dt_facturacions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_facturats_20221118.rds"))%>%
-  as_tibble()
+dt_facturacions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_facturats_20221118.rds"))
 #v)
-dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_prescrits_20221118.rds"))%>%
-   as_tibble()
-
-```
-
-
-```{r calcul_deNs, include=T, warning=FALSE}
-
-# Actualitzo data sortida en funció de trasllat (situacio=="T")
-# Obviem Trasllats
-
-dt_temp<-dt_poblacio
-
-# dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", sortida, 20201231))
-# dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="D", sortida, 20220630))
-# dt_temp2<-dt_temp %>% mutate(sortida=ifelse(situacio=="T", 20220630,sortida))
-
-N_actiu_01Gener<-function(dt=dt_temp,any="2010") {
-  # dt=dt_temp
-  # any="2010"
-  dt %>% summarise(N=sum(sortida>=paste0(any,"0101") & entrada<=paste0(any,"0101")))}
-
-TaulaNs<-
-  c(2000:2019) %>% purrr::set_names(c(2000:2019)) %>% 
-  purrr::map_df(~ 
-               N_actiu_01Gener(dt=dt_temp, any=.x),.id="Year")
-
-TaulaNs %>% kable() %>% kableExtra::kable_classic_2()
-
-
-#write.csv2(taulaNs,"taulaNs.csv")
+dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_farmacs_prescrits_20221118.rds"))
 
 ```
 
 
 
-## 2. Generar DataIndex DM2-Debut
+# Classificació de DM i data 
+
+## 2. Generar DataIndex DM-Debut
 ```{r generacio_dtindex_SCRIP, include=F, eval=TRUE}
-
-
-
 # 1. Data index DM2 segons codi diagnostic #
 dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% filter(agr=="DM2")
 
-dt_index1<-dt_diagnostics %>% semi_join(dt_codis,by="cod") %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex=as.character(dat))
-
+dt_index_codiDM2<-dt_diagnostics %>% semi_join(dt_codis,by="cod") %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex=as.character(dat))
 
 # 2. Data index DM2 segons HbA1c >=6.5 # 
 # Busco la data minima  d'una GLICADA >=6.5, de cada pacient.
-dt_index2<-dt_variables %>% filter(cod=="GLICADA") %>% filter(val>=6.5) %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex_HB=as.character(dat))
+dt_index_Glicada<-dt_variables %>% filter(cod=="GLICADA") %>% filter(val>=6.5) %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex_HB=as.character(dat))
+```
 
+
+# Segons fármacs antidiabetics
+
+```{r generacio_dtindex_SCRIP2, include=F, eval=TRUE}
 # 3. Data index DM2 segons Farmacs antidiabetics prescrits
-dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% 
+dt_codisAD<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% 
   filter(domini=="farmacs" & agr=="ANTIDIAB") %>% distinct(cod) %>% mutate(agr="ANTIDIAB")
-  
+
 dt_temp_primeradata<-
-  dt_prescripcions %>% semi_join(dt_codis,by="cod") %>% 
-  agregar_prescripcions(bd.dindex = "22000101", dt.agregadors = dt_codis,finestra.dies = c(-Inf, + Inf),agregar_data = T) %>% 
-  select(idp,dtindex=FP.ANTIDIAB)
+  dt_prescripcions %>% semi_join(dt_codisAD,by="cod") %>% 
+  group_by(idp) %>% slice_min(dat) %>% ungroup() %>% 
+  distinct(idp,dat) %>% transmute(idp,dtindex=as.character(dat))
 
 dt_ANTIDIAB_CUMUL<-
-  dt_prescripcions %>% semi_join(dt_codis,by="cod") %>% 
-  agregar_prescripcions(bd.dindex = "22000101", dt.agregadors = dt_codis,finestra.dies = c(-Inf, + Inf),agregar_data = F) %>% 
+  dt_prescripcions %>% semi_join(dt_codisAD,by="cod") %>% 
+  agregar_prescripcions(bd.dindex = "22000101", dt.agregadors = dt_codisAD,finestra.dies = c(-Inf, + Inf),agregar_data = F) %>% 
   filter(FP.ANTIDIAB>90) %>% select(-dtindex)
 
-dt_index3a <-dt_ANTIDIAB_CUMUL %>% left_join(dt_temp_primeradata,by="idp")  %>% mutate(dtindex=data.to.string(dtindex))
+dt_index3a <-dt_ANTIDIAB_CUMUL %>% left_join(dt_temp_primeradata,by="idp")  
 
 # 4. Data index DM2 segons Farmacs antidiabetics dispensats/facturats
 dt_index3b<-
-  dt_facturacions %>% semi_join(dt_codis,by="cod") %>% select(idp,cod,dat,env) %>% distinct() %>% 
+  dt_facturacions %>% semi_join(dt_codisAD,by="cod") %>% select(idp,cod,dat,env) %>% distinct() %>% 
   group_by(idp) %>% summarise(sum_env=sum(env), data_1a=min(dat)) %>% ungroup() %>% 
   filter(sum_env>=3) %>% 
-  select(idp,dtindex=data_1a) %>% mutate(dtindex=paste0(dtindex,"15"))
+  select(idp,dtindex=data_1a) %>% mutate(dtindex=paste0(dtindex,"01"))
 
-dt_index3<-dt_index3a %>% bind_rows(dt_index3b) %>% group_by(idp) %>% slice(which.min(dtindex)) %>% ungroup() %>% select(idp,dtindex_FX=dtindex)
+dt_index_FarmacsAD<-dt_index3a %>% bind_rows(dt_index3b) %>% 
+  group_by(idp) %>% slice(which.min(dtindex)) %>% ungroup() %>% 
+  select(idp,dtindex_FX=dtindex)
 
 
+```
+
+# Segons complicacions de la diabetis
+
+```{r generacio_dtindex_SCRIP3, include=F, eval=TRUE}
 # 6. Data index DM2 segons complicacions de la diabetis (RD , Retino, Neuro diabetica etc.. )
 dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr,Comp_DM) %>% filter(!is.na(Comp_DM)) %>% 
   distinct(cod)
 
-dt_index4<-dt_diagnostics %>% 
+dt_index_ComplicacioDM<-dt_diagnostics %>% 
   semi_join(dt_codis,by="cod") %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% select(idp,dtindex=dat) %>% 
   transmute(idp,dtindex_comp=as.character(dtindex))
 
+######## Combinació de criteris per DM2
+```
 
-######### Combinació de criteris per DM2
 
-#dt_index1 (DM2)
+
+```{r generacio_dtindex_SCRIP4, include=F, eval=TRUE}
+#dt_index_codiDM2 (DM2)
 
 ### Dos criteris entre els 2 seguents
-dt_temp<-dt_index2 %>% 
-  full_join(dt_index3,by = "idp") %>% full_join(dt_index4,by = "idp") %>%
-  mutate(COUNT_HB2=dtindex_HB,COUNT_FX=dtindex_FX,COUNT_comp=dtindex_comp)
-
-dt_temp<-mutate_at(dt_temp, vars( starts_with("COUNT_") ), funs( if_else(.==0  | is.na(.)  ,0,1)))
-
-dt_temp<-dt_temp%>%mutate(COUNT=COUNT_HB2+COUNT_FX+COUNT_comp)%>%filter(COUNT>=2) %>% 
-  mutate(data_min=pmin(dtindex_HB,dtindex_FX,na.rm = T)) %>% 
-  select(idp,dtindex =data_min)
-
-# Fusió de dos criteris
-dt_index_global<-dt_index1 %>% bind_rows(dt_temp) %>% group_by(idp) %>% slice(which.min(dtindex))
-dt_index<-dt_index_global
+dt_criteriDM<-dt_index_Glicada %>% 
+  full_join(dt_index_FarmacsAD,by = "idp") %>% 
+  full_join(dt_index_ComplicacioDM,by = "idp") %>%
+  mutate(COUNT_HB2=dtindex_HB,COUNT_FX=dtindex_FX,COUNT_comp=dtindex_comp) %>% 
+  mutate_at(vars( starts_with("COUNT_") ), funs( if_else(.==0  | is.na(.)  ,0,1))) %>% 
+  mutate(N_condicions=COUNT_HB2+COUNT_FX+COUNT_comp) %>% 
+  filter(N_condicions>=2) %>% 
+  select(idp,dtindex_HB,dtindex_FX,dtindex_comp) %>% 
+  mutate(CriteriDM=1)
 
 
+# dt_index_FarmacsAD %>% filter(idp=="1faaebf01b43d2dc1121dae9b0f913d7e554f170")
+# dt_criteriDM %>% filter(idp=="1faaebf01b43d2dc1121dae9b0f913d7e554f170")
+# Fusió de tots els criteris
+# dt_temp<-
+#   mutate(data_min=pmin(dtindex_HB,dtindex_FX,dtindex_comp,na.rm = T)) %>% 
+#   select(idp,dtindex =data_min)
 
-#fet per mi!!!
+# Fusió de tots els criteris i capturar data mes recent 
+dt_temp<-
+  dt_index_codiDM2 %>%  rename(dtindex_codDM=dtindex) %>% 
+  full_join(dt_index_Glicada) %>% full_join(dt_index_FarmacsAD) %>% full_join(dt_index_ComplicacioDM) %>% 
+  left_join(dt_criteriDM)
 
-#filtrem per l any que volem estiduidiar 
 
-dt_temp<-dt_index%>%
-  left_join(dt_poblacio,by="idp") %>% 
-    mutate(sortida=ifelse(situacio=="T", sortida, 20201231))%>%
-     filter(sortida>=params$bd.dindex2 & entrada<=params$bd.dindex1)
-  
-# filtrar per any!!, i o reonvertim dt_index.
+# Diabetic per Codi registrat o diabetic per criteris combinat (Fx o Hb o complicacions)
+dt_diabetics<-dt_temp %>% filter(!is.na(dtindex_codDM) | CriteriDM==1)
 
-dt_temp<-dt_temp %>%select(idp,dtindex)
-dt_index<-dt_temp
+```
 
-#dt_temp
+# Data de debut
+
+- Més recent entre totes les condicions
+
+```{r generacio_dtindex_SCRIP5, include=F, eval=TRUE}
+
+# Calculo  data debut DM com la minima entre totes les condicions 
+
+dt_temp1<-dt_diabetics %>% select(idp,dtindex=dtindex_codDM)
+
+dt_temp2<-dt_index_ComplicacioDM %>% select(idp,dtindex=dtindex_comp)
+
+dt_temp3<-dt_prescripcions %>% semi_join(dt_codisAD,by="cod") %>% select(idp,dat) %>% group_by(idp) %>% slice_min(dat) %>% ungroup() %>% distinct() %>% 
+   transmute(idp,dtindex=as.character(dat))
+
+dt_temp4<-dt_facturacions %>%  semi_join(dt_codisAD,by="cod") %>% select(idp,dat) %>% 
+  group_by(idp) %>% slice_min(dat) %>% ungroup() %>% distinct() %>% transmute(idp,dtindex=paste0(dat,"01"))
+
+dt_temp5<-dt_index_Glicada %>% transmute(idp,dtindex=dtindex_HB)
+
+# Fusiono tot i agafo la primera
+dt_temp<-
+  dt_temp1 %>% bind_rows(dt_temp2) %>% bind_rows(dt_temp3) %>% bind_rows(dt_temp4) %>% bind_rows(dt_temp5) %>% 
+  group_by(idp) %>% slice_min(dtindex) %>% ungroup() %>% distinct()
+
+# Filtro només DIABETICS PER CRITERIS
+dt_index_global<-dt_diabetics %>% left_join(dt_temp,by="idp") 
+
+
+
+dt_index<-dt_index_global %>% select(idp,dtindex) %>% distinct()
 
 
 
 ```
+
+
+
+# S'eclouen aquells amb altres tipus de codis registrat de DM (DMG o Secundari)
+
+2.	Those with gestational diabetes, secondary diabetes (e.g., drug-induced, chemical-induced, exocrine pancreatic insufficiency, and genetic defects), maturity-onset diabetes of the young, and rare forms of diabetes will be excluded.
+
+
+```{r}
+
+
+```
+
+
+
+# Classificació de DM1 / DM2 / Desconeguda
+
+Els DM es classifiquen en tres grups en funció de Edat al diagnostic i temps fins la insunilització 
+
+```{r}
+# Calculo la edat al diagnostic
+dt_edadDM<-
+  dt_index %>% left_join(select(dt_poblacio,idp,dnaix),by="idp") %>% 
+  mutate(ageDM=(lubridate::ymd(dtindex)-lubridate::ymd(dnaix))/365.25) %>% 
+  mutate(ageDM=as.numeric(ageDM))
+
+
+# Calculo temps fins la insunilització
+dt_codis_insulina<-
+  readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr,INSU) %>% 
+  filter(INSU=="INSULINA") %>% distinct(cod) %>% mutate(agr="INSULINA")
+  
+#  Prescripcio
+dt_primera_insulinaFX1<-
+  dt_prescripcions %>% semi_join(dt_codis_insulina,by="cod") %>% 
+  group_by(idp) %>% slice_min(dat) %>% ungroup() %>% 
+  distinct(idp,dat) %>% transmute(idp,dat0_insu=dat)
+
+# Facturacio
+dt_primera_insulinaFX2<-
+  dt_facturacions %>% 
+  semi_join(dt_codis_insulina,by="cod") %>% group_by(idp) %>% slice_min(dat) %>% ungroup() %>% distinct(idp,dat) %>% 
+  transmute(idp,dat0_insu=as.integer(paste0(dat,"01")))
+
+# Fusió
+dt_primera_insulina<-
+  dt_primera_insulinaFX1 %>% bind_rows(dt_primera_insulinaFX2) %>% 
+  group_by(idp) %>% slice_min(dat0_insu) %>% ungroup() %>% distinct()
+  
+# Fusió de les dues fonts 
+dt_Diabetics<-
+  dt_index %>% 
+  left_join(dt_primera_insulina,by="idp") %>% 
+  left_join(dt_edadDM, by=c("idp","dtindex")) %>% 
+  mutate(dies_insu=(lubridate::ymd(dat0_insu)-lubridate::ymd(dtindex))) %>% 
+  mutate(dies_insu=as.numeric(dies_insu))
+
+```
+
+
+# Genero tipus de diabetis segons CODI CIM10 (Etiqueta en HTC)
+
+```{r}
+
+codisDM<-dt_cataleg %>% filter(domini=="diagnostics") %>% filter(agr%in% c("DM1","DM2","DMG","DM_ALTRES","DM"))
+
+dt_dindex<-dt_Diabetics %>% distinct(idp,dtindex) 
+
+dtagr_problemes<-
+  Platan::agregar_problemes(dt_diagnostics, 
+                          bd.dindex = dt_dindex, 
+                          dt.agregadors = codisDM,
+                          finestra.dies = c(-Inf,0),
+                          cataleg_mana = T)
+  
+
+```
+
+
+
+# Classifico DM1
+
+- Debut anterior als 35 anys & 
+-	Temps fins Insulina <365 dies desdel debut (Tots porten INSULINA)
+-	Mai tractas amb antidiabetics NO insulinics (Exepte Metformina) 
+
+
+Dubtes: Que fem a la etiqueta de DM1/DM2/altres?
+
+```{r}
+
+# Classifico DM1
+
+# Debut anterior als 35 anys & 
+#	Temps fins Insulina <365 dies & 
+# Sense tracament a
+
+
+dt_Diabetics<-dt_Diabetics %>% 
+  mutate(DM1_age=if_else(ageDM<35,1,0)) %>% 
+  mutate(Insulina365=if_else(dies_insu<=365, 1,0,missing = 0))
+
+# Codis antidiabetics no insulinics (a excepció de metformina)
+codisFarmacs_NODM1<-
+  dt_cataleg %>% 
+  filter(agr=="ANTIDIAB") %>% 
+  filter(is.na(INSU) & is.na(MET))
+
+dt_temp1<-dt_prescripcions %>% semi_join(codisFarmacs_NODM1,by="cod") %>% distinct(idp)
+dt_temp2<-dt_facturacions %>% semi_join(codisFarmacs_NODM1,by="cod") %>% distinct(idp)
+dt_temp<-dt_temp1 %>% bind_rows(dt_temp2) %>% distinct(idp) %>% mutate(DM1_NOinsulinics=1)
+
+
+dt_temp<-
+  dt_Diabetics %>% left_join(dt_temp,by="idp") %>% 
+  mutate(DM1_NOinsulinics=if_else(is.na(DM1_NOinsulinics),0,DM1_NOinsulinics)) %>% 
+  mutate(DM1=if_else(DM1_age==1 & Insulina365==1 & DM1_NOinsulinics==0,1,0,missing=0)) 
+           
+
+dt_Diabetics<-dt_temp
+
+
+```
+
+# Classifico DM2
+
+- Certain/definite type 2 diabetes if they did not have any insulin therapy within the first two years after diagnosis
+
+- Els DM2 no poden portar insulina dins dels dos anys posteriors al debut DM2
+
+```{r}
+
+# cLASSIFICO ELS DM2
+
+dt_temp<-dt_Diabetics %>% 
+  mutate(DM2=if_else(dies_insu>730 & DM1==0,1,0)) %>% 
+  mutate(DM2=if_else(DM2==0 ,0,1,missing = 1))
+
+#
+dt_diabetics<-dt_temp
+# table(dt_diabetics$DM1,dt_diabetics$DM2)
+
+
+
+```
+
+# Classifico uncertain diabetes type
+
+Els indeterminats serien els: 
+
+- No DM1
+- Els que es detecta insunilització dins dels 2 anys post debut. 
+
+
+
+```{r}
+
+dt_diabetics<-dt_diabetics %>% mutate(DM_indeterminat=if_else(DM2==0 & DM1==0,1,0,missing = 0))
+
+
+```
+
+# fusionem problemes de salut 
+
+```{r fusio1}
+
+dt_plana<-
+  dt_poblacio_ESP %>% select(-agr_pais) %>% 
+  left_join(select(dt_diabetics,idp,DM2,DM1,DM_indeterminat,dtindex,ageDM,dies_insu)) %>%  
+  left_join(dtagr_problemes,by=c("idp","dtindex"))
+
+
+
+```
+
+
+
+
+## 5. Salvar  
+```{r SALVAR}
+
+saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana.rds"))
+
+
+```
+
+
+
+
 
 
 ```{r algoritmeDM2, eval=FALSE}
@@ -269,55 +470,6 @@ Generar_DM2<-function(dt_diagnostics, dt_glicades,dt_facturacio,dt_prescripcions
   
   }
 
-
-
-```
-
-
-
-
-## 4. Agregacion de nuestros ficheros a partir del catalago
-```{r agregacio, include=T, eval=TRUE}
-
-
-codis_altresDM<-dt_cataleg %>% filter(domini=="diagnostics") %>% 
-  filter(agr=="DM1" | agr=="DMG") 
-
-
-#Agregacio Problemes de Salut.
-dtagr_diagnostics<-agregar_problemes(dplyr::select(dt_diagnostics,idp,cod,dat),
-                                     bd.dindex = dt_index,
-                                     dt.agregadors=codis_altresDM,
-                                     finestra.dies=c(-Inf,0),prefix = "DG.",
-                                     cataleg_mana=FALSE)
-
-
-dtagr_diagnostics<-dtagr_diagnostics%>%select(-dtindex)
-
-```
-
-
-## 5. Fusion 1
-
-Fusionar part dels arxius agregats 
- 
-```{r fusio1}
-
-
-
-dt_plana<-dt_poblacio_ESP %>% 
-  left_join(dt_index, by="idp") %>%
-  left_join(dtagr_diagnostics,by="idp")
-       
-
-
-```
-
-
-## 5. Salvar  
-```{r SALVAR}
-
-saveRDS(dt_plana, file=here::here(params$dir_dades_desti,"dt_plana.rds"))
 
 
 ```
