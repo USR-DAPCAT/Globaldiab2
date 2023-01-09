@@ -111,13 +111,11 @@ dt_analitiques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregabl
 dt_cliniques<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entregable_variables_cliniques_20221118.rds"))
 # Fusiono cliniques + variables
 
-dt_variables<-dt_analitiques%>%
-   bind_rows(dt_cliniques)%>%
-    select(-agr)%>%
-     left_join(select(dt_cataleg,cod,agr),by="cod")%>% 
-       select(-cod)%>%
-        rename(cod=agr)
-
+dt_variables_HB<-
+  dt_analitiques%>%
+  bind_rows(dt_cliniques)%>% 
+  filter(cod=="HBA1C")
+    
 
 
 #iv)
@@ -134,13 +132,16 @@ dt_prescripcions<-readRDS(here::here(directori_dades_origen,"GLOBALDIAB2_entrega
 ## 2. Generar DataIndex DM-Debut
 ```{r generacio_dtindex_SCRIP, include=F, eval=TRUE}
 # 1. Data index DM2 segons codi diagnostic #
-dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% filter(agr=="DM2")
+dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% filter(agr%in%c("DM2","DM1","DM_ALTRES"))
 
 dt_index_codiDM2<-dt_diagnostics %>% semi_join(dt_codis,by="cod") %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex=as.character(dat))
 
+
 # 2. Data index DM2 segons HbA1c >=6.5 # 
 # Busco la data minima  d'una GLICADA >=6.5, de cada pacient.
-dt_index_Glicada<-dt_variables %>% filter(cod=="GLICADA") %>% filter(val>=6.5) %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex_HB=as.character(dat))
+dt_index_Glicada<-dt_variables_HB %>% filter(val>=6.5) %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% transmute(idp,dtindex_HB=as.character(dat))
+
+
 ```
 
 
@@ -177,59 +178,26 @@ dt_index_FarmacsAD<-dt_index3a %>% bind_rows(dt_index3b) %>%
 
 ```
 
-# Segons complicacions de la diabetis
-
-```{r generacio_dtindex_SCRIP3, include=F, eval=TRUE}
-# 6. Data index DM2 segons complicacions de la diabetis (RD , Retino, Neuro diabetica etc.. )
-dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr,Comp_DM) %>% filter(!is.na(Comp_DM)) %>% 
-  distinct(cod)
-
-dt_index_ComplicacioDM<-dt_diagnostics %>% 
-  semi_join(dt_codis,by="cod") %>% group_by(idp) %>% slice(which.min(dat)) %>% ungroup() %>% select(idp,dtindex=dat) %>% 
-  transmute(idp,dtindex_comp=as.character(dtindex))
-
-######## Combinació de criteris per DM2
-```
-
 
 
 ```{r generacio_dtindex_SCRIP4, include=F, eval=TRUE}
 #dt_index_codiDM2 (DM2)
 
-### Dos criteris entre els 2 seguents
-dt_criteriDM<-dt_index_Glicada %>% 
+### Qualsevol del 3 criteris 
+dt_criteriDM<-
+  dt_index_Glicada %>% 
   full_join(dt_index_FarmacsAD,by = "idp") %>% 
-  full_join(dt_index_ComplicacioDM,by = "idp") %>%
-  mutate(COUNT_HB2=dtindex_HB,COUNT_FX=dtindex_FX,COUNT_comp=dtindex_comp) %>% 
-  mutate_at(vars( starts_with("COUNT_") ), funs( if_else(.==0  | is.na(.)  ,0,1))) %>% 
-  mutate(N_condicions=COUNT_HB2+COUNT_FX+COUNT_comp) %>% 
-  filter(N_condicions>=2) %>% 
-  select(idp,dtindex_HB,dtindex_FX,dtindex_comp) %>% 
-  mutate(CriteriDM=1)
-
-
-# dt_index_FarmacsAD %>% filter(idp=="1faaebf01b43d2dc1121dae9b0f913d7e554f170")
-# dt_criteriDM %>% filter(idp=="1faaebf01b43d2dc1121dae9b0f913d7e554f170")
-# Fusió de tots els criteris
-# dt_temp<-
-#   mutate(data_min=pmin(dtindex_HB,dtindex_FX,dtindex_comp,na.rm = T)) %>% 
-#   select(idp,dtindex =data_min)
-
-# Fusió de tots els criteris i capturar data mes recent 
-dt_temp<-
-  dt_index_codiDM2 %>%  rename(dtindex_codDM=dtindex) %>% 
-  full_join(dt_index_Glicada) %>% full_join(dt_index_FarmacsAD) %>% full_join(dt_index_ComplicacioDM) %>% 
-  left_join(dt_criteriDM)
-
-
-# Diabetic per Codi registrat o diabetic per criteris combinat (Fx o Hb o complicacions)
-dt_diabetics<-dt_temp %>% filter(!is.na(dtindex_codDM) | CriteriDM==1)
+  full_join(dt_index_codiDM2 %>% rename(dtindex_codDM=dtindex), by = "idp")
+ 
+dt_diabetics<-dt_criteriDM
+ 
 
 ```
 
 # Data de debut
 
-- Més recent entre totes les condicions
+- Més antiga entre les 3  condicions
+
 
 ```{r generacio_dtindex_SCRIP5, include=F, eval=TRUE}
 
@@ -237,10 +205,12 @@ dt_diabetics<-dt_temp %>% filter(!is.na(dtindex_codDM) | CriteriDM==1)
 
 dt_temp1<-dt_diabetics %>% select(idp,dtindex=dtindex_codDM)
 
-dt_temp2<-dt_index_ComplicacioDM %>% select(idp,dtindex=dtindex_comp)
+# dt_temp2<-dt_index_ComplicacioDM %>% select(idp,dtindex=dtindex_comp)
 
-dt_temp3<-dt_prescripcions %>% semi_join(dt_codisAD,by="cod") %>% select(idp,dat) %>% group_by(idp) %>% slice_min(dat) %>% ungroup() %>% distinct() %>% 
-   transmute(idp,dtindex=as.character(dat))
+dt_temp3<-dt_prescripcions %>% 
+  semi_join(dt_codisAD,by="cod") %>% 
+  select(idp,dat) %>% group_by(idp) %>% slice_min(dat) %>% ungroup() %>% 
+  distinct() %>% transmute(idp,dtindex=as.character(dat))
 
 dt_temp4<-dt_facturacions %>%  semi_join(dt_codisAD,by="cod") %>% select(idp,dat) %>% 
   group_by(idp) %>% slice_min(dat) %>% ungroup() %>% distinct() %>% transmute(idp,dtindex=paste0(dat,"01"))
@@ -249,7 +219,7 @@ dt_temp5<-dt_index_Glicada %>% transmute(idp,dtindex=dtindex_HB)
 
 # Fusiono tot i agafo la primera
 dt_temp<-
-  dt_temp1 %>% bind_rows(dt_temp2) %>% bind_rows(dt_temp3) %>% bind_rows(dt_temp4) %>% bind_rows(dt_temp5) %>% 
+  dt_temp1 %>% bind_rows(dt_temp3) %>% bind_rows(dt_temp4) %>% bind_rows(dt_temp5) %>% 
   group_by(idp) %>% slice_min(dtindex) %>% ungroup() %>% distinct()
 
 # Filtro només DIABETICS PER CRITERIS
@@ -265,18 +235,6 @@ dt_index<-dt_index_global %>% select(idp,dtindex) %>% distinct()
 
 
 
-# S'eclouen aquells amb altres tipus de codis registrat de DM (DMG o Secundari)
-
-2.	Those with gestational diabetes, secondary diabetes (e.g., drug-induced, chemical-induced, exocrine pancreatic insufficiency, and genetic defects), maturity-onset diabetes of the young, and rare forms of diabetes will be excluded.
-
-
-```{r}
-
-
-```
-
-
-
 # Classificació de DM1 / DM2 / Desconeguda
 
 Els DM es classifiquen en tres grups en funció de Edat al diagnostic i temps fins la insunilització 
@@ -286,8 +244,8 @@ Els DM es classifiquen en tres grups en funció de Edat al diagnostic i temps fi
 dt_edadDM<-
   dt_index %>% left_join(select(dt_poblacio,idp,dnaix),by="idp") %>% 
   mutate(ageDM=(lubridate::ymd(dtindex)-lubridate::ymd(dnaix))/365.25) %>% 
-  mutate(ageDM=as.numeric(ageDM))
-
+  mutate(ageDM=as.numeric(ageDM)) %>% 
+  select(idp,dtindex,ageDM)
 
 # Calculo temps fins la insunilització
 dt_codis_insulina<-
@@ -322,20 +280,35 @@ dt_Diabetics<-
 ```
 
 
-# Genero tipus de diabetis segons CODI CIM10 (Etiqueta en HTC)
+# S'eclouen aquells amb altres tipus de codis registrat de DM (DMG o Secundari)
+
+2.	Those with gestational diabetes, secondary diabetes (e.g., drug-induced, chemical-induced, exocrine pancreatic insufficiency, and genetic defects), maturity-onset diabetes of the young, and rare forms of diabetes will be excluded.
+
+
+- S'excloura DM secundaria (Codis Altres)
+
+
+
+# Genero tipus de diabetis segons CODI CIM10 (Agregador)
 
 ```{r}
 
 codisDM<-dt_cataleg %>% filter(domini=="diagnostics") %>% filter(agr%in% c("DM1","DM2","DMG","DM_ALTRES","DM"))
 
-dt_dindex<-dt_Diabetics %>% distinct(idp,dtindex) 
+# dt_dindex<-dt_Diabetics %>% distinct(idp,dtindex) 
 
 dtagr_problemes<-
   Platan::agregar_problemes(dt_diagnostics, 
-                          bd.dindex = dt_dindex, 
+                          bd.dindex = "20501231", 
                           dt.agregadors = codisDM,
-                          finestra.dies = c(-Inf,0),
+                          finestra.dies = c(-Inf,+Inf),
                           cataleg_mana = T)
+
+# No poden ser DG.DM_ALTRES
+dt_Diabetics<-dt_Diabetics %>% anti_join(dtagr_problemes %>% filter(DG.DM_ALTRES>0),by="idp")
+
+dt_index <- dt_index %>% anti_join(dtagr_problemes %>% filter(DG.DM_ALTRES>0),by="idp")
+
   
 
 ```
@@ -349,7 +322,8 @@ dtagr_problemes<-
 -	Mai tractas amb antidiabetics NO insulinics (Exepte Metformina) 
 
 
-Dubtes: Que fem a la etiqueta de DM1/DM2/altres?
+Nota: No es considera la etiqueta de DM1/DM2/altres?
+
 
 ```{r}
 
@@ -357,8 +331,7 @@ Dubtes: Que fem a la etiqueta de DM1/DM2/altres?
 
 # Debut anterior als 35 anys & 
 #	Temps fins Insulina <365 dies & 
-# Sense tracament a
-
+# Sense tracament Antidiab excepte Metformina
 
 dt_Diabetics<-dt_Diabetics %>% 
   mutate(DM1_age=if_else(ageDM<35,1,0)) %>% 
@@ -374,13 +347,11 @@ dt_temp1<-dt_prescripcions %>% semi_join(codisFarmacs_NODM1,by="cod") %>% distin
 dt_temp2<-dt_facturacions %>% semi_join(codisFarmacs_NODM1,by="cod") %>% distinct(idp)
 dt_temp<-dt_temp1 %>% bind_rows(dt_temp2) %>% distinct(idp) %>% mutate(DM1_NOinsulinics=1)
 
-
 dt_temp<-
   dt_Diabetics %>% left_join(dt_temp,by="idp") %>% 
   mutate(DM1_NOinsulinics=if_else(is.na(DM1_NOinsulinics),0,DM1_NOinsulinics)) %>% 
   mutate(DM1=if_else(DM1_age==1 & Insulina365==1 & DM1_NOinsulinics==0,1,0,missing=0)) 
-           
-
+   
 dt_Diabetics<-dt_temp
 
 
@@ -391,6 +362,8 @@ dt_Diabetics<-dt_temp
 - Certain/definite type 2 diabetes if they did not have any insulin therapy within the first two years after diagnosis
 
 - Els DM2 no poden portar insulina dins dels dos anys posteriors al debut DM2
+- No DM1
+
 
 ```{r}
 
@@ -401,7 +374,7 @@ dt_temp<-dt_Diabetics %>%
   mutate(DM2=if_else(DM2==0 ,0,1,missing = 1))
 
 #
-dt_diabetics<-dt_temp
+dt_Diabetics<-dt_temp
 # table(dt_diabetics$DM1,dt_diabetics$DM2)
 
 
@@ -413,13 +386,15 @@ dt_diabetics<-dt_temp
 Els indeterminats serien els: 
 
 - No DM1
-- Els que es detecta insunilització dins dels 2 anys post debut. 
+- No DM2
 
 
 
 ```{r}
 
-dt_diabetics<-dt_diabetics %>% mutate(DM_indeterminat=if_else(DM2==0 & DM1==0,1,0,missing = 0))
+dt_Diabetics<-dt_Diabetics %>% mutate(DM_indeterminat=if_else(DM2==0 & DM1==0,1,0,missing = 0))
+
+
 
 
 ```
@@ -430,9 +405,8 @@ dt_diabetics<-dt_diabetics %>% mutate(DM_indeterminat=if_else(DM2==0 & DM1==0,1,
 
 dt_plana<-
   dt_poblacio_ESP %>% select(-agr_pais) %>% 
-  left_join(select(dt_diabetics,idp,DM2,DM1,DM_indeterminat,dtindex,ageDM,dies_insu)) %>%  
+  left_join(select(dt_Diabetics,idp,DM2,DM1,DM_indeterminat,dtindex,ageDM,dies_insu),by="idp") %>%  
   left_join(dtagr_problemes,by=c("idp","dtindex"))
-
 
 
 ```

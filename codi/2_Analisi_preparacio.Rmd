@@ -12,7 +12,7 @@ output:
   word_document:
     toc: yes
 params:
-   dir_dades_desti: "dades" # "dades/mostra"  # "dades"
+   dir_dades_desti: "dades/mostra" # "dades/mostra"  # "dades"
    website: https://github.com/USR-DAPCAT/
 ---
 &nbsp;
@@ -131,7 +131,15 @@ dades<-dades %>% mutate(age_youngDM2=case_when(age<40 ~ "Yes",age>=40 ~ "No"))
 
 ```
 
+```{r DM_TIPO}
 
+dades<-
+  dades %>% mutate(DM_tipo=case_when(DM1==1~"DM1",
+                                   DM2==1~"DM2",
+                                   DM_indeterminat==1~"DM_indeterminat"))
+
+
+```
 
 # Analsis
 
@@ -159,6 +167,10 @@ descrTable(formula_Taula00_2,
 
 
 ```
+
+
+
+
 
 
 ```{r,include=T, eval=TRUE}
@@ -192,6 +204,7 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
                                                  age_t0>=30 & age_t0<35 ~ "[30-34]",
                                                  age_t0>=35 & age_t0<40 ~ "[35-39]",
                                                  age_t0 >=40~ "age>=40" ))
+  
   dt_temp<-dt_temp %>% mutate(grupAgeSex=paste0(sexe,": ",age2_t0.cat))
   
   # DMPrevalents
