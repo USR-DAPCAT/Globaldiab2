@@ -304,6 +304,7 @@ dtagr_problemes<-
                           finestra.dies = c(-Inf,+Inf),
                           cataleg_mana = T)
 
+
 # No poden ser DG.DM_ALTRES
 dt_Diabetics<-dt_Diabetics %>% anti_join(dtagr_problemes %>% filter(DG.DM_ALTRES>0),by="idp")
 
@@ -406,7 +407,7 @@ dt_Diabetics<-dt_Diabetics %>% mutate(DM_indeterminat=if_else(DM2==0 & DM1==0,1,
 dt_plana<-
   dt_poblacio_ESP %>% select(-agr_pais) %>% 
   left_join(select(dt_Diabetics,idp,DM2,DM1,DM_indeterminat,dtindex,ageDM,dies_insu),by="idp") %>%  
-  left_join(dtagr_problemes,by=c("idp","dtindex"))
+  left_join(select(dtagr_problemes,-dtindex),by=c("idp"))
 
 
 ```

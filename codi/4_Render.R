@@ -35,9 +35,7 @@ gc()
 mostra=F
 
 dir_dades_desti="dades" 
-dir_dades_origen="../DADES/GLOBALDIAB2" 
 if (mostra) {
-  dir_dades_origen="../DADES/GLOBALDIAB2/mostra"
   dir_dades_desti="dades/mostra" }
 #---------------------------- PREPARACIO -------------------------------------------------------------# 
 rmarkdown::render(input="./codi/2_Analisi_preparacio.Rmd",

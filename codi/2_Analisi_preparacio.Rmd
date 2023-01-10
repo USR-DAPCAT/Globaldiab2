@@ -31,37 +31,24 @@ params:
 ****
 
 # Estat
+**Fet** 
 
-**Lecturas,Tabla Plana, agregaciones y parte global descriptiva**
+Desembre 2022 - Gener 2023
 
+&check; Lectura d'arxius <br/>
+&check; Identificació de DM segons criteris definits <br/>
+&check; Creació d'algoritme de classificació segons criteris <br/>
+&check; Agregacions <br/>
+&check; Construcció de variables <br/>
+&check; Descriptiva <br/>
+&check; Programació d'indicadors <br/>
 
-&check; 1.	La diabetes se determinara y definira sobre la base de un diagnostico o código de diagnostico proporcionado por un profesional sanitario pertinente.<br/>
-        O tendra que cumplir estos dos supuestos: <br/>
-&check; 2a.La presencia de dos o mas valores de glucosa en sangre o HbA1c≥6,5 % (48 mmol/mol)), en un período de 6 meses.<br/>
-&check; 2b.Prescripción de medicamentos para bajar la glucosa durante al menos 3 meses <br/>
-        Se excluiran : <br/>
-&check; i.  las personas con diabetes gestacional <br/>
-&check; ii. diabetes secundaria <br/>
-&check; iii.diabetes de inicio en la madurez de los jóvenes y formas raras de diabetes <br/>
+**Pendent**
 
+&check; Revisió de clasificació de diabetis <br/>
+&check; Revisió d'indicadors <br/>
 
-Desembre / 2022
-
-&check; 1.	Diabetes will be ascertained and defined on the basis of a diagnosis or diagnostic code provided by a relevant healthcare professional, or at least two of:  <br/>
-        
-&check; 2a.the presence of two or more blood glucose or HbA1c values within the diagnostic ranges for diabetes (fasting plasma glucose ≥7.0 mmol/l (126 mg/dl), random or 2-hour plasma glucose ≥11.1 mmol/l (200 mg/dl) or HbA1c ≥6.5% (48 mmol/mol)), within a 6-month period.<br/>
-&check; 2b.prescription of glucose-lowering medication for at least 3 months <br/>
-&check; 2c.	the provision of a service that is unique to people with diabetes <br/>
-
-
-
- 
-**Pendientes**
-
-&check; Revision de classificación de diabetis, depuracion de  errores y exclusiones   <br/>
-
-
-# Objetivos
+# Objectius
 
 
 - The overall aim of the project is to understand trends of the incidence of young-onset type 2 diabetes and mortality trends in younger people with diabetes in multiple sites around the world. 
@@ -69,8 +56,11 @@ Desembre / 2022
 
 ## Specific aims:
 
-Aim 1: to assess the regional and country-specific rates and trends in the incidenceof young-onset type 2 diabetes and mortality trends among younger people with diabetes from 2000 onwards (or a subset thereof);
-Aim 2: to investigate if the changes in the incidence of young-onset type 2 diabetes over time varied by country or region, age group and sex.  
+- Aim 1: to assess the regional and country-specific rates and trends in the incidenceof young-onset type 2 diabetes and mortality trends among younger people with diabetes from 2000 onwards (or a subset thereof);
+
+- Aim 2: to investigate if the changes in the incidence of young-onset type 2 diabetes over time varied by country or region, age group and sex.  
+
+
 
 
 
@@ -90,16 +80,126 @@ library("kableExtra")
 
 conductor<-here::here("conductor.xlsx")
 
+conductor_codis<-here::here("cataleg_globaldiab.xls")
+
 #
 ```
 
+# Métodes
+
+
+## Definició de diabetis adaptada a SIDIAP: 
+
+Una persona es classificada com a diabetis si compleix qualsevol de les seguents 3 condicions: 
+
+- 1. Diabetes segons codis diagnòstics registrats a la historia clínica AP o CMBDH (**Vegis llistat de codis**); o  
+
+- 2. HbA1c ≥6.5% (48 mmol/mol)) en qualsevol moment; o
+
+- 3. Prescripció dispensada de 3 o més envasos o 90 dies de prescripció de antidiabetics definits segons codis ATC (**Vegis llistat de codis**)
+
+## Classificació de DM1 / DM2 / Indeterminada
+
+Es classifiquen en tres grups de diabetis en funció de la edat al diagnòstic, detecció de prescripció d'insulina i/o temps fins insulinització
+
+Notes:
+
+- S'exclouen aquells amb qualsevol codi diagnostic com a diabetes secundaria en qualsevol moment (**Vegis llistat de codis**)
+- per classificar-los no es considera la etiqueta de DM1/DM2 segons codi diagnostic CIM9/10. 
+
+**DM1**("certain"): 
+
+- Debut abans dels 35 años   
+-	Temps fins Insulina abans dels 365 dies des del (teoric) debut (Tots DM1 han de porten INSULINA)
+-	Mai tractats amb antidiabetics NO insulinics (Exepte Metformina) 
+
+
+**DM2**("certain")
+
+- No DM1
+- Si porten insulina ha de ser posterior a 2 anys al diagnòstic. (If they did not have any insulin therapy within the first two years after diagnosis)
+- No consta Insulina prescrita ni dispensada
+
+
+**Diabetis indeterminada**(uncertain diabetes type)
+
+Els indeterminats serien els: 
+
+- No DM1; i
+- No DM2
+
+
+## Data de debut
+
+- Es considera la data de debut de la Diabetis la data més antiga d'una prescripcio / dispensació de qualsevol antidiabetic, data de determinació de HbA1c o data del registre de qualsevol codi diagnóstic de diabetis. 
+
+
+## Criteris d'inclusió: 
+
+Persones incloses a la historia clínica SIDIAP d'edats compreses entre 15 y 39 anys a 01 de gener de cada any analitzat
+
+
+**Llistat de códis diagnóstics considerats de DM**
+
+```{r, include=TRUE}
+
+# 1. Data index DM2 segons codi diagnostic #
+dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% filter(agr%in%c("DM2","DM1"))
+
+dt_codis %>% select(agr,cod) %>% kable() %>% kable_classic_2()
+
+```
+
+**Llistat de códis diagnóstics considerats altres tipus de DM**
+
+- Codis exclosos de qualsevol tipus de DM
+
+```{r, include=TRUE}
+
+# 1. Data index DM2 segons codi diagnostic #
+dt_codis<-readxl::read_excel(conductor_codis,col_types = "text") %>% select(domini,cod,agr) %>% filter(agr%in%c("DM_ALTRES"))
+
+dt_codis %>% select(agr,cod) %>% kable() %>% kable_classic_2()
+
+```
+
+**Llistat de códis ATC de fàrmacs antidiabetis**
+
+```{r, include=TRUE}
+
+codisFarmacs_NODM1<-
+  readxl::read_excel(conductor_codis,col_types = "text") %>% 
+  filter(agr=="ANTIDIAB") %>% 
+  filter(is.na(MET))
+
+
+codisFarmacs_NODM1 %>% select(agr,cod, des) %>% kable() %>% kable_classic_2()
+
+```
 
 ```{r llegir, include = FALSE}
 
-#######################################################
+################
 # Llegir plana
 dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds")) 
 
+
+
+```
+
+```{r filtre_previ}
+
+# Elimino passius anteriors a 2006
+# Selecciono els que tenen 40 o menys anys a 20060101 (edat20060101)
+# Elimino els que tenen Menys (<15) de 15 anys a 20220101 
+
+dades<-dades %>% 
+  filter(sortida>=20060101) %>% 
+  mutate(edat20060101=(ymd(20060101)-ymd(dnaix))/365.25, 
+         edat20220101=(ymd(20220101)-ymd(dnaix))/365.25) %>% 
+  filter(edat20060101<40) %>%  # Els majors de 40 anys a 2006 s'eliminen
+  filter(edat20220101>15) %>%  # Els menors de 15 anys a 2022 s'eliminen
+  select(-edat20060101,-edat20220101)
 
 
 ```
@@ -111,27 +211,31 @@ dades<-readRDS(here::here(params$dir_dades_desti,"dt_plana.rds"))
 
 #general
 
-#1)EDAT
+#1)EDAT en data de debut de la DM
 dades<-dades %>% mutate(age=as.numeric(lubridate::ymd(dtindex)-lubridate::ymd(dnaix))/365.25)
 #2)EDAT-->age2.cat: <30,[30-56),[56-75),>=75
 
-dades<-dades %>% mutate(age2.cat=case_when(age>=15 & age<20~ "age>=15 & <20",
-                                                 age>=20 & age<25 ~ "age>=20 & <25",
-                                                 age>=25 & age<30 ~ "age>=25 & <30",
-                                                 age>=30 & age<35 ~ "age>=30 & <35",
-                                                 age>=35 & age<40 ~ "age>=35 & <40",
-                                                 age >=40~ "age>=40" ))
-
-
-dades<-dades %>% mutate(age_youngDM2=case_when(age<40 ~ "Yes",age>=40 ~ "No"))
-
-
+dades<-dades %>% mutate(age2.cat=case_when(age>=15 & age<20~ "[15-19]",
+                                                 age>=20 & age<25 ~ "[20-24]",
+                                                 age>=25 & age<30 ~ "[25-29]",
+                                                 age>=30 & age<35 ~ "[30-34]",
+                                                 age>=35 & age<40 ~ "[35-39]",
+                                                 age >=40~ "[40+"))
 
 
 
 ```
 
 ```{r DM_TIPO}
+
+# 
+# S'eclouen aquells amb altres tipus de codis registrat de DM (DMG o Secundari)
+
+# 2.	Those with gestational diabetes, secondary diabetes (e.g., drug-induced, chemical-induced, exocrine pancreatic insufficiency, and genetic defects), maturity-onset diabetes of the young, and rare forms of diabetes will be excluded.
+
+# S'excloura DM secundaria (Codis Altres)
+
+
 
 dades<-
   dades %>% mutate(DM_tipo=case_when(DM1==1~"DM1",
@@ -141,7 +245,13 @@ dades<-
 
 ```
 
-# Analsis
+```{r recodificar}
+
+dades<-dades %>% mutate (sexe=recode(sexe,"H"="M","D"="F"))
+
+
+```
+
 
 
 ```{r analisis3,include=TRUE, warning=FALSE, eval=FALSE}
@@ -169,17 +279,23 @@ descrTable(formula_Taula00_2,
 ```
 
 
+```{r, mostreig, eval=FALSE}
+
+dt_temp<-dades %>% mostreig_ids(n_mostra = 50000)
+
+
+dades<-dt_temp
+
+```
 
 
 
 
 ```{r,include=T, eval=TRUE}
 
-dt_temp<-dades
-
 output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
   
-  # any="2010"
+  # any="2015"
   # dt_temp=dades
   # DM="DM2"
   # Dates
@@ -190,9 +306,8 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
   dt_temp<-dt_temp %>% 
     filter(entrada<=data0 & sortida>data0) %>% 
     mutate(exitus_any = ifelse(situacio=="D" & sortida<=datafi,1,0)) %>% # Actualitzo exitus any
-    mutate(sortida= ifelse(sortida>datafi,datafi,sortida))  %>%         # Actualitzo data sortida any
+    mutate(sortida= ifelse(sortida>datafi,datafi,sortida))  %>%         # Actualitzo data sortida final dany
     mutate(age_t0=as.numeric(lubridate::ymd(data0)-lubridate::ymd(dnaix))/365.25)  # Edat en t0 
-    
   
   # Filtro per grups d'edat analitzat
   dt_temp<-dt_temp %>% filter(age_t0>=15 & age_t0<40)
@@ -203,7 +318,7 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
                                                  age_t0>=25 & age_t0<30 ~ "[25-29]",
                                                  age_t0>=30 & age_t0<35 ~ "[30-34]",
                                                  age_t0>=35 & age_t0<40 ~ "[35-39]",
-                                                 age_t0 >=40~ "age>=40" ))
+                                                 age_t0 >=40~ "[40+" ))
   
   dt_temp<-dt_temp %>% mutate(grupAgeSex=paste0(sexe,": ",age2_t0.cat))
   
@@ -223,28 +338,34 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
     # DM especific (DM1 / DM2 / DM3)
     mutate(DM_incident_esp=if_else(dtindex>=data0 & dtindex<=datafi,DM_esp,0,missing = 0)) %>% 
     mutate(Age_DM_incident_esp=ifelse(DM_incident_esp==1,age,NA)) %>% 
-    
+    mutate(exitusDM_esp=if_else(DM_esp==1 & exitus_any==1,1,0)) %>% 
+    mutate(DM_prev_esp=if_else(dtindex<data0,DM_esp,0,missing = 0)) %>% 
     
     mutate(dies_seguiment=lubridate::ymd(sortida)-lubridate::ymd(data0)) %>% 
     mutate(anys_seguiment=as.numeric(dies_seguiment/365.25)) %>% 
     
     mutate(anys_seguimentDM=if_else(DM_prev==1,anys_seguiment,0)) %>% 
-    mutate(anys_seguimentnoDM=if_else(DM_prev==0,anys_seguiment,0)) 
+    mutate(anys_seguimentnoDM=if_else(DM_prev==0,anys_seguiment,0)) %>% 
     
+    mutate(anys_seguiment_DMesp=if_else(DM_prev_esp==1,anys_seguiment,0)) %>% 
+    mutate(anys_seguiment_noDMesp=if_else(DM_prev_esp==0,anys_seguiment,0))
+         
+  
   resum_dades<-function(x=dt_kk){
    x %>% summarise(
      Year=any,
-     age_DM2inc=mean(Age_DM_incident,na.rm=T),
-     age_pob_t0=mean(age_t0,na.rm=T),
-     N_DM_inc=sum(DM_incident),
-     N_DM_esp_inc=sum(DM_incident_esp),
-     N_exitusDM=sum(exitusDM),
-     N_DM_prev=sum(DM_prev),
-     Population=n(),
-     
-     N_exitus_totals=sum(exitus_any),
-     PYears_DM2=sum(anys_seguimentDM),
-     PYears_noDM2=sum(anys_seguimentnoDM))
+     "Age at 1-Jan-Year"=mean(age_t0,na.rm=T),
+     "Age at diagnosis new cases"=mean(Age_DM_incident_esp,na.rm=T),
+     "new cases of diabetes"=sum(DM_incident_esp),
+     "No. deaths in diabetes (P+I)" =sum(exitusDM_esp),  # Prevalents + incidents
+     "No. of prevalent cases"= sum(DM_prev_esp),
+     "Total population" =n(),
+     "No. deaths total population"=sum(exitus_any),
+     "Person years of diabetes (Pr)" =sum(anys_seguiment_DMesp),
+     "Person years without diabetes (Pr)" =sum(anys_seguiment_noDMesp),
+ 
+     "Person years of any diabetes (Pr)" =sum(anys_seguimentDM),
+     "Person years without any diabetes (Pr)" =sum(anys_seguimentnoDM))
     } 
     
     out_global<-
@@ -254,7 +375,7 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
     out_sexe<-dt_kk %>% 
       split(.$sexe) %>% 
       purrr::map_df(~resum_dades(.x),.id = "Group") %>% 
-      mutate(id=c(2,8))
+      mutate(id=c(2,8),DM=DM)
    
     # out_grups_edat<-dt_kk %>% 
     #   split(.$age2_t0.cat) %>% 
@@ -263,15 +384,14 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
     out_SexEdat<-dt_kk %>% 
       split(.$grupAgeSex) %>% 
       purrr::map_df(~resum_dades(.x),.id = "Group")%>% 
-      mutate(id=c(seq(3,7),seq(9,13)))
+      mutate(id=c(seq(3,7),seq(9,13)),DM=DM)
    
-    
     # Fusió
     out_global %>% 
       relocate(c(DM,id,Group), .before = Year) %>% 
       bind_rows(out_sexe) %>% 
       bind_rows(out_SexEdat) %>% 
-      arrange(id)
+      arrange(id) %>% select(-id)
   
     }
 
@@ -279,7 +399,20 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
 
 ```
 
-## Tabla resumen 
+# Summary tables 
+
+
+
+```{r, eval=FALSE}
+
+output_resum_any("2010",dt_temp=dades,DM="DM1")
+output_resum_any("2010",dt_temp=dades,DM="DM2")
+output_resum_any("2010",dt_temp=dades,DM="DM_indeterminat")
+
+```
+
+## type 2 diabetes							
+
 
 ```{r, include=TRUE}
 
@@ -287,15 +420,21 @@ output_resum_any<-function(any="2010",dt_temp=dades, DM="DM2") {
 # Globals
 
 
-c("2006":"2022") %>% 
+outputDM2<-
+  c("2006":"2022") %>% 
   purrr::map_df(
-  ~output_resum_any(.x,dt_temp=dades)) %>% 
-  kable(caption = "Summary table",digits = 2) %>% 
-  kableExtra::kable_classic_2()
+    ~output_resum_any(.x,dt_temp=dades,DM="DM2"))
+  
+
+
+outputDM2 %>% 
+  kable(caption = "Summary table type 2 diabetes",digits = 2) %>% 
+  kableExtra::kable_classic_2() %>% 
+  kableExtra::add_footnote("Pr: Prevalent cases; P + I; Prevalent + Incident cases; Group: Age group at 1 Jan")
   
   
-output_resum_any("2010",dt_temp=dades,DM="DM1")
-  
+
+# ?writexl::write_xlsx
 
 # Per grups d'edat i sexe
 
@@ -305,6 +444,53 @@ output_resum_any("2010",dt_temp=dades,DM="DM1")
 
 ```
 
+## type 1 diabetes							
+
+
+```{r, include=TRUE}
+
+outputDM1<-
+  c("2006":"2022") %>% 
+  purrr::map_df(
+    ~output_resum_any(.x,dt_temp=dades,DM="DM1")) 
+
+
+outputDM1 %>% 
+  kable(caption = "Summary table type 1 diabetes",digits = 2) %>% 
+  kableExtra::kable_classic_2() %>% 
+  kableExtra::add_footnote("Pr: Prevalent cases; P + I; Prevalent + Incident cases; Group: Age group at 1 Jan")
+
+
+
+```
+
+## Uncertain diabetes type
+
+```{r, include=TRUE}
+
+output_uncertainDM<-
+  c("2006":"2022") %>% 
+  purrr::map_df(
+    ~output_resum_any(.x,dt_temp=dades,DM="DM_indeterminat")) 
+
+
+output_uncertainDM %>% 
+  kable(caption = "Summary table Uncertain diabetes type",digits = 2) %>% 
+  kableExtra::kable_classic_2() %>% 
+  kableExtra::add_footnote("Pr: Prevalent cases; P + I; Prevalent + Incident cases; Group: Age group at 1 Jan")
+
+
+```
+
+
+```{r salvaoutputs}
+
+writexl::write_xlsx(outputDM2, here::here("outputs/outputDM2.xlsx"))
+writexl::write_xlsx(outputDM1, here::here("outputs/outputDM1.xlsx") )
+writexl::write_xlsx(output_uncertainDM,here::here("outputs/outputDM_uncertain.xlsx"))
+
+
+```
 
 
 
